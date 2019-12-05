@@ -1,0 +1,17 @@
+{
+  "name": "com.maxvandelaar.homey-webos",
+  "version": "1.0.0",
+  "description": "Add improved support for LG tv via WebOS",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mac-regex": "^1.0.0",
+    "node-wol": "^0.1.1",
+    "portscanner": "^2.2.0",
+    "websocket": "^1.0.30"
+  }
+}
