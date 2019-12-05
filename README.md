@@ -1,8 +1,3 @@
-**NOTE**
-Since Athom again refused to accept this app in the app store and actually considered copying features without asking I have decided to take all my code offline. You can still download the latest releases and create issues for support/feature requests/etc...
-
-Sorry for this disappointing message, I still eagerly want to participate to the Homey community but unless Athom get their act together I will not open source my code. I sincerely hope you understand my decision!  
-
 # Homey WebOS
 With the WebOS Plus app combined with Homey you can control your LG TV from anywhere in the world.
 

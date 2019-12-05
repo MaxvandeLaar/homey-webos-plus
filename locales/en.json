@@ -1,0 +1,15 @@
+{
+  "settings": {
+    "title": "Homey WebOS Settings",
+    "ipAddress": "IP address"
+  },
+  "errors": {
+    "something.wrong": "Something went wrong, try again later"
+  },
+  "pair": {
+    "name": "TV name",
+    "mac": "MAC address",
+    "ip": "IP address",
+    "add": "Add"
+  }
+}
