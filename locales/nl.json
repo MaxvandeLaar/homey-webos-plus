@@ -1,0 +1,15 @@
+{
+  "settings": {
+    "title": "Homey WebOS Instellingen",
+    "ipAddress": "IP adres"
+  },
+  "errors": {
+    "something.wrong": "Er ging iets mis, probeer het opnieuw"
+  },
+  "pair": {
+    "name": "Naam van de TV",
+    "mac": "MAC adres",
+    "ip": "IP adres",
+    "add": "Voeg toe"
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "id": "com.maxvandelaar.webos-plus",
+  "version": "0.0.1",
+  "compatibility": ">=3.1.0",
+  "sdk": 2,
+  "name": {
+    "en": "WebOS Plus",
+    "nl": "WebOS Plus"
+  },
+  "brandColor": "#A50034",
+  "description": {
+    "en": "Adds improved WebOS integration",
+    "nl": "Voegt verbeterde WebOS integratie toe"
+  },
+  "tags": {
+    "en": [
+      "lg",
+      "lgtv",
+      "WebOS",
+      "tv",
+      "television",
+      "video"
+    ],
+    "nl": [
+      "lg",
+      "lgtv",
+      "WebOS",
+      "tv",
+      "televisie",
+      "video"
+    ]
+  },
+  "category": [
+    "video"
+  ],
+  "images": {
+    "large": "/assets/images/large.png",
+    "small": "/assets/images/small.png"
+  },
+  "author": {
+    "name": "Max van de Laar",
+    "email": "max.vandelaar@me.com"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Max van de Laar",
+        "email": "max.vandelaar@me.com"
+      }
+    ],
+    "translators": [
+      {
+        "name": "Max van de Laar"
+      }
+    ]
+  },
+  "discovery": {
+    "webos": {
+      "type": "ssdp",
+      "ssdp": {
+        "search": "urn:lge-com:service:webos-second-screen:1"
+      },
+      "id": "{{headers.usn}}",
+      "conditions": [
+        [
+          {
+            "field": "headers.st",
+            "match": {
+              "type": "string",
+              "value": "urn:lge-com:service:webos-second-screen:1"
+            }
+          }
+        ]
+      ]
+    }
+  },
+  "flow": {
+    "triggers": [
+      {
+        "id": "input_changed",
+        "title": {
+          "en": "Input changed"
+        },
+        "args": [
+          {
+            "name": "my_device",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "launch_app",
+        "title": {
+          "en": "Launch app or input",
+          "nl": "Open app or input"
+        },
+        "args": [
+          {
+            "name": "app",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
+          },
+          {
+            "name": "webos-device",
+            "type": "device",
+            "filter": "driver_id=webos-plus"
+          }
+        ]
+      },
+      {
+        "id": "change_volume",
+        "title": {
+          "en": "Change the volume to",
+          "nl": "Verander het volume naar"
+        },
+        "args": [
+          {
+            "name": "volume",
+            "type": "number",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "placeholder": {
+              "en": "Set the volume",
+              "nl": "Zet het volume"
+            }
+          },
+          {
+            "name": "webos-device",
+            "type": "device",
+            "filter": "driver_id=webos-plus"
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "id": "webos_plus",
+      "name": {
+        "en": "WebOS Plus"
+      },
+      "class": "tv",
+      "discovery": "webos",
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_my_devices"
+          }
+        },
+        {
+          "id": "add_my_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "General Settings",
+            "nl": "Instellingen"
+          },
+          "children": [
+            {
+              "id": "pollInterval",
+              "type": "number",
+              "label": {
+                "en": "Poll interval"
+              },
+              "hint": {
+                "en": "Interval to check if the tv is on or off",
+                "nl": "Interval om te controleren of de tv aan of uit is"
+              },
+              "value": 10,
+              "min": 5,
+              "max": 3600,
+              "units": {
+                "en": "seconds"
+              }
+            }
+          ]
+        }
+      ],
+      "capabilities": [
+        "onoff",
+        "volume_set",
+        "channel_down",
+        "channel_up",
+        "volume_down",
+        "volume_up",
+        "volume_mute"
+      ],
+      "capabilitiesOptions": {
+        "onoff": {
+          "uiQuickAction": true
+        },
+        "volume_set": {
+          "units": "%",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "decimals": 0
+        }
+      },
+      "images": {
+        "large": "/drivers/webos-plus/assets/images/large.png",
+        "small": "/drivers/webos-plus/assets/images/small.png"
+      }
+    }
+  ]
+}
