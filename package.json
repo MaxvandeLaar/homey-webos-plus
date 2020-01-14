@@ -7,7 +7,7 @@
     "deploy": "npm install && homey app install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Max van de Laar",
   "license": "ISC",
   "dependencies": {
     "mac-regex": "^1.0.0",
