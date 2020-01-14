@@ -14,10 +14,11 @@ class WebosPlusDevice extends Homey.Device {
       apps: [],
       date: new Date()
     };
+
     this.device = this;
     this._driver = this.getDriver();
     this._driver.ready(() => {
-      this.log('Device Ready!!');
+      this.log('Device Ready!');
       this.connect();
       this.registerListeners();
       this.poll();
@@ -48,19 +49,16 @@ class WebosPlusDevice extends Homey.Device {
     this.registerCapabilityListener('onoff', this.toggleOnOff.bind(this));
     this.registerCapabilityListener('volume_set', this.setVolume.bind(this));
     this.registerCapabilityListener('volume_mute', this.muteVolume.bind(this));
-    this.registerCapabilityListener('volume_up', this.setVolumeUp.bind(this));
-    this.registerCapabilityListener('volume_down', this.setVolumeDown.bind(this));
-    this.registerCapabilityListener('channel_up', this.setChannelUp.bind(this));
-    this.registerCapabilityListener('channel_down', this.setChannelDown.bind(this));
+    this.registerCapabilityListener('volume_up', this.setVolumeUpDown.bind(this, true));
+    this.registerCapabilityListener('volume_down', this.setVolumeUpDown.bind(this, false));
+    this.registerCapabilityListener('channel_up', this.setChannelUpDown.bind(this, 'channelUp'));
+    this.registerCapabilityListener('channel_down', this.setChannelUpDown.bind(this, 'channelDown'));
   }
 
   flowActions() {
     Homey.app._actionLaunchApp
       .registerRunListener((args, state) => {
         return new Promise((resolve, reject) => {
-          this.log('launch app action');
-          this.log('args', args);
-          this.log('state', state);
           this.launchApp(args.app.id).then(() => {
             resolve(true);
           }, (_error) => {
@@ -71,12 +69,13 @@ class WebosPlusDevice extends Homey.Device {
       .register()
       .getArgument('app')
       .registerAutocompleteListener((query, args) => {
-        this.log(query);
         return new Promise((resolve) => {
           let apps = [];
           if (this.launchPoints.apps.length < 1 || this.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
+            if (!this.lgtv) {
+              return;
+            }
             this.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
-              this.log(result);
               if (result) {
                 this.launchPoints.apps = result.launchPoints.map(point => {
                   return {
@@ -87,21 +86,33 @@ class WebosPlusDevice extends Homey.Device {
                 });
               }
               apps = this.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+              apps = apps.sort((a, b) => {
+                return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
+              });
               resolve(apps);
             });
           } else {
             apps = this.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+            apps = apps.sort((a, b) => {
+              return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
+            });
             resolve(apps);
           }
         });
       });
 
-    Homey.app._actionChangeVolume
-      .registerRunListener(async (args, state) => {
-        await this.setVolume(args.volume);
-        return Promise.resolve(true);
+    Homey.app._actionSimulateButton
+      .registerRunListener((args, state) => {
+        return new Promise((resolve, reject) => {
+          this.simulateButton(args.button).then(() => {
+            resolve(true);
+          }, (_error) => {
+            reject(false)
+          });
+        });
       })
-      .register();
+      .register()
+      .getArgument('button');
   }
 
   onSettings(oldSettings, newSettings, changedKeys) {
@@ -133,8 +144,8 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
-  checkVolume() {
-    if (!this.connected) {
+  async checkVolume() {
+    if (!this.connected || !this.lgtv) {
       return;
     }
     this.lgtv.subscribe('ssap://audio/getVolume', (err, res) => {
@@ -144,15 +155,16 @@ class WebosPlusDevice extends Homey.Device {
       if (res.changed && res.changed.indexOf('volume') !== -1) {
         const currentVolume = this.getCapabilityValue('volume_set');
         if (currentVolume !== res.volume) {
-          // this._driver.triggerVolumeChanged(this.device, res.volume);
-
           this.setCapabilityValue('volume_set', res.volume)
             .catch(this.error);
         }
       }
       if (res.changed && res.changed.indexOf('muted') !== -1) {
-        this.setCapabilityValue('volume_mute', res.muted)
-          .catch(this.error);
+        const currentMute = this.getCapabilityValue('volume_mute');
+        if (currentMute !== res.muted) {
+          this.setCapabilityValue('volume_mute', res.muted)
+            .catch(this.error);
+        }
       }
     });
   }
@@ -163,7 +175,7 @@ class WebosPlusDevice extends Homey.Device {
       this.lgtv.disconnect();
     }
 
-    if (this.connected) {
+    if (this.lgtv && this.connected) {
       return;
     }
 
@@ -177,7 +189,9 @@ class WebosPlusDevice extends Homey.Device {
     });
 
     this.lgtv.on('close', () => {
+      this.log('Disconnected');
       this.connected = false;
+      this.lgtv = null;
     });
 
     return new Promise((resolve, reject) => {
@@ -194,12 +208,29 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
+  async simulateButton(button) {
+    return new Promise(async (resolve, reject) => {
+      await this.connect();
+      this.lgtv.getSocket(
+        'ssap://com.webos.service.networkinput/getPointerInputSocket',
+        async (err, sock) => {
+          if (err) {
+            this.error(err);
+            reject(err);
+          }
+          if (!err) {
+            sock.send('button', {name: button.toUpperCase()});
+            sock.close();
+            resolve(true);
+          }
+        }
+      );
+    });
+  }
+
   async launchApp(id) {
     return new Promise(async (resolve, reject) => {
-      if (!this.connected) {
-        await this.connect();
-      }
-
+      await this.connect();
       this.lgtv.request('ssap://com.webos.applicationManager/launch', {id}, (err, res) => {
         if (err) {
           reject(err);
@@ -208,43 +239,28 @@ class WebosPlusDevice extends Homey.Device {
         }
       });
     });
-
   }
 
   async setVolume(value) {
-    if (!this.connected) {
-      await this.connect();
-    }
+    await this.connect();
+    const currentValue = this.getCapabilityValue('volume_set');
     this.lgtv.request('ssap://audio/setVolume', {volume: value}, (err, res) => {
-      this.setCapabilityValue('volume_set', value)
-        .catch(this.error);
-    });
-  }
-
-  async setVolumeUp() {
-    if (!this.connected) {
-      await this.connect();
-    }
-    this.lgtv.request('ssap://audio/volumeUp', (err, res) => {
-      if (err) {
-        this.error(err);
-      } else {
-        let volume = this.getCapabilityValue('volume_set') + 1;
-        this.setCapabilityValue('volume_set', volume)
+      if (value !== currentValue) {
+        this.setCapabilityValue('volume_set', value)
           .catch(this.error);
       }
     });
   }
 
-  async setVolumeDown() {
-    if (!this.connected) {
-      await this.connect();
-    }
-    this.lgtv.request('ssap://audio/volumeDown', (err, res) => {
+  async setVolumeUpDown(up) {
+    await this.connect();
+    const action = up ? 'volumeUp' : 'volumeDown';
+    this.lgtv.request(`ssap://audio/${action}`, (err, res) => {
       if (err) {
         this.error(err);
       } else {
-        let volume = this.getCapabilityValue('volume_set') - 1;
+        let volume = this.getCapabilityValue('volume_set');
+        volume = up ? volume + 1 : volume - 1;
         this.setCapabilityValue('volume_set', volume)
           .catch(this.error);
       }
@@ -252,46 +268,26 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   async muteVolume(value) {
-    if (!this.connected) {
-      await this.connect();
-    }
+    await this.connect();
     this.lgtv.request('ssap://audio/setMute', {mute: value}, (err, res) => {
       this.setCapabilityValue('volume_mute', value)
         .catch(this.error);
     });
   }
 
-  async setChannelUp() {
-    if (!this.connected) {
-      await this.connect();
-    }
-    this.lgtv.request('ssap://tv/channelUp', (err, res) => {
+  async setChannelUpDown(action) {
+    await this.connect();
+    this.lgtv.request(`ssap://tv/${action}`, (err, res) => {
       if (err) {
         this.error(err);
-      } else {
-        // let volume = this.getCapabilityValue('volume_set') - 1;
-        // this.setCapabilityValue('volume_set', volume)
-        //   .catch(this.error);
-      }
-    });
-  }
-
-  async setChannelDown() {
-    if (!this.connected) {
-      await this.connect();
-    }
-    this.lgtv.request('ssap://tv/channelDown', (err, res) => {
-      if (err) {
-        this.error(err);
-      } else {
-        // let volume = this.getCapabilityValue('volume_set') - 1;
-        // this.setCapabilityValue('volume_set', volume)
-        //   .catch(this.error);
       }
     });
   }
 
   turnOff() {
+    if (!this.connected || !this.lgtv) {
+      return;
+    }
     this.lgtv.request('ssap://system/turnOff', (err, res) => {
       this.handleOff();
     });
@@ -299,24 +295,24 @@ class WebosPlusDevice extends Homey.Device {
 
   handleOff() {
     this.connected = false;
-    this.lgtv.disconnect();
+    if (this.lgtv) {
+      this.lgtv.disconnect();
+    }
     const currentValue = this.getCapabilityValue('onoff');
-    const lastChange = (this.latestOnOffChange - Date.now()) / 1000;
-    if (currentValue && lastChange > 30) {
+    const lastChange = (Date.now() - this.latestOnOffChange) / 1000;
+    if (currentValue && lastChange > 90) {
       this.latestOnOffChange = Date.now();
       this.setCapabilityValue('onoff', false).catch(this.error);
-      // this._driver.triggerTvOff(this);
     }
   };
 
   handleOn() {
     this.connect();
     const currentValue = this.getCapabilityValue('onoff');
-    const lastChange = (this.latestOnOffChange - Date.now()) / 1000;
-    if (!currentValue && lastChange > 30) {
+    const lastChange = (Date.now() - this.latestOnOffChange) / 1000;
+    if (!currentValue && lastChange > 90) {
       this.latestOnOffChange = Date.now();
       this.setCapabilityValue('onoff', true).catch(this.error);
-      // this._driver.triggerTvOn(this);
     }
   }
 
