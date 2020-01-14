@@ -75,21 +75,7 @@
     }
   },
   "flow": {
-    "triggers": [
-      {
-        "id": "input_changed",
-        "title": {
-          "en": "Input changed"
-        },
-        "args": [
-          {
-            "name": "my_device",
-            "type": "device",
-            "filter": "driver_id=webos_plus"
-          }
-        ]
-      }
-    ],
+    "triggers": [],
     "actions": [
       {
         "id": "launch_app",
@@ -109,32 +95,290 @@
           {
             "name": "webos-device",
             "type": "device",
-            "filter": "driver_id=webos-plus"
+            "filter": "driver_id=webos_plus"
           }
         ]
       },
       {
-        "id": "change_volume",
+        "id": "simulate_button",
         "title": {
-          "en": "Change the volume to",
-          "nl": "Verander het volume naar"
+          "en": "Simulate remote control button",
+          "nl": "Simuleer afstandsbediening knop"
         },
         "args": [
           {
-            "name": "volume",
-            "type": "number",
-            "min": 0,
-            "max": 100,
-            "step": 1,
+            "name": "button",
+            "type": "dropdown",
             "placeholder": {
-              "en": "Set the volume",
-              "nl": "Zet het volume"
-            }
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            },
+            "values": [
+              {
+                "id": "LEFT",
+                "label": {
+                  "en": "Left",
+                  "nl": "Links"
+                }
+              },
+              {
+                "id": "RIGHT",
+                "label": {
+                  "en": "Right",
+                  "nl": "Rechts"
+                }
+              },
+              {
+                "id": "UP",
+                "label": {
+                  "en": "Up",
+                  "nl": "Omhoog"
+                }
+              },
+              {
+                "id": "DOWN",
+                "label": {
+                  "en": "Down",
+                  "nl": "Omlaag"
+                }
+              },
+              {
+                "id": "HOME",
+                "label": {
+                  "en": "Home",
+                  "nl": "Thuis"
+                }
+              },
+              {
+                "id": "BACK",
+                "label": {
+                  "en": "Back",
+                  "nl": "Terug"
+                }
+              },
+              {
+                "id": "DASH",
+                "label": {
+                  "en": "Dash",
+                  "nl": "Streepje"
+                }
+              },
+              {
+                "id": "Info",
+                "label": {
+                  "en": "Info",
+                  "nl": "Info"
+                }
+              },
+              {
+                "id": "ENTER",
+                "label": {
+                  "en": "Ok",
+                  "nl": "Ok"
+                }
+              },
+              {
+                "id": "MENU",
+                "label": {
+                  "en": "Menu",
+                  "nl": "Menu"
+                }
+              },
+              {
+                "id": "EXIT",
+                "label": {
+                  "en": "Exit",
+                  "nl": "Exit"
+                }
+              },
+              {
+                "id": "ASTERISK",
+                "label": {
+                  "en": "Rec/*",
+                  "nl": "Rec/*"
+                }
+              },
+              {
+                "id": "CC",
+                "label": {
+                  "en": "Subtitles",
+                  "nl": "Ondertiteling"
+                }
+              },
+              {
+                "id": "VOLUMEUP",
+                "label": {
+                  "en": "Volume up",
+                  "nl": "Volume omhoog"
+                }
+              },
+              {
+                "id": "VOLUMEDOWN",
+                "label": {
+                  "en": "Volume down",
+                  "nl": "Volume omlaag"
+                }
+              },
+              {
+                "id": "MUTE",
+                "label": {
+                  "en": "Mute",
+                  "nl": "Mute"
+                }
+              },
+              {
+                "id": "CHANNELUP",
+                "label": {
+                  "en": "Channel up",
+                  "nl": "Kanaal omhoog"
+                }
+              },
+              {
+                "id": "CHANNELDOWN",
+                "label": {
+                  "en": "Channel down",
+                  "nl": "Kanaal omlaag"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "1",
+                  "nl": "1"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "2",
+                  "nl": "2"
+                }
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "3",
+                  "nl": "3"
+                }
+              },
+              {
+                "id": "4",
+                "label": {
+                  "en": "4",
+                  "nl": "4"
+                }
+              },
+              {
+                "id": "5",
+                "label": {
+                  "en": "5",
+                  "nl": "5"
+                }
+              },
+              {
+                "id": "6",
+                "label": {
+                  "en": "6",
+                  "nl": "6"
+                }
+              },
+              {
+                "id": "7",
+                "label": {
+                  "en": "7",
+                  "nl": "7"
+                }
+              },
+              {
+                "id": "8",
+                "label": {
+                  "en": "8",
+                  "nl": "8"
+                }
+              },
+              {
+                "id": "9",
+                "label": {
+                  "en": "9",
+                  "nl": "9"
+                }
+              },
+              {
+                "id": "0",
+                "label": {
+                  "en": "0",
+                  "nl": "0"
+                }
+              },
+              {
+                "id": "PLAY",
+                "label": {
+                  "en": "Play",
+                  "nl": "Play"
+                }
+              },
+              {
+                "id": "PAUSE",
+                "label": {
+                  "en": "Pause",
+                  "nl": "Pauzeren"
+                }
+              },
+              {
+                "id": "STOP",
+                "label": {
+                  "en": "Stop",
+                  "nl": "Stop"
+                }
+              },
+              {
+                "id": "REWIND",
+                "label": {
+                  "en": "Rewind",
+                  "nl": "Terugspoelen"
+                }
+              },
+              {
+                "id": "FASTFORWARD",
+                "label": {
+                  "en": "Fast forward",
+                  "nl": "Doorspoelen"
+                }
+              },
+              {
+                "id": "RED",
+                "label": {
+                  "en": "Red",
+                  "nl": "Rood"
+                }
+              },
+              {
+                "id": "GREEN",
+                "label": {
+                  "en": "Green",
+                  "nl": "Groen"
+                }
+              },
+              {
+                "id": "YELLOW",
+                "label": {
+                  "en": "Yellow",
+                  "nl": "Geel"
+                }
+              },
+              {
+                "id": "BLUE",
+                "label": {
+                  "en": "Blue",
+                  "nl": "Blauw"
+                }
+              }
+            ]
           },
           {
             "name": "webos-device",
             "type": "device",
-            "filter": "driver_id=webos-plus"
+            "filter": "driver_id=webos_plus"
           }
         ]
       }
@@ -180,7 +424,7 @@
                 "nl": "Interval om te controleren of de tv aan of uit is"
               },
               "value": 10,
-              "min": 5,
+              "min": 120,
               "max": 3600,
               "units": {
                 "en": "seconds"

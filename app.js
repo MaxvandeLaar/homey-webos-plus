@@ -9,7 +9,7 @@ class WebosPlus extends Homey.App {
 
     // Actions
     this._actionLaunchApp = new Homey.FlowCardAction('launch_app');
-    this._actionChangeVolume = new Homey.FlowCardAction('change_volume');
+    this._actionSimulateButton = new Homey.FlowCardAction('simulate_button');
   }
 }
 
