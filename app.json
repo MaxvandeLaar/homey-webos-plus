@@ -423,7 +423,7 @@
                 "en": "Interval to check if the tv is on or off",
                 "nl": "Interval om te controleren of de tv aan of uit is"
               },
-              "value": 10,
+              "value": 120,
               "min": 120,
               "max": 3600,
               "units": {
