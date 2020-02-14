@@ -15,7 +15,11 @@ class WebosPlusDevice extends Homey.Device {
       date: new Date()
     };
 
-    this.device = this;
+    this.channelList = {
+      channels: [],
+      date: new Date()
+    };
+
     this._driver = this.getDriver();
     this._driver.ready(() => {
       this.log('Device Ready!');
@@ -36,9 +40,10 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   onDiscoveryAddressChanged(discoveryResult) {
-    this.setSettings({ipAddress: discoveryResult.address});
-    this.connect(true);
-    this.poll();
+    this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+      this.connect(true);
+      this.poll();
+    });
   }
 
   onDiscoveryLastSeenChanged(discoveryResult) {
@@ -58,8 +63,9 @@ class WebosPlusDevice extends Homey.Device {
   flowActions() {
     Homey.app._actionLaunchApp
       .registerRunListener((args, state) => {
+        const device = args.webosDevice;
         return new Promise((resolve, reject) => {
-          this.launchApp(args.app.id).then(() => {
+          device.launchApp(args.app.id).then(() => {
             resolve(true);
           }, (_error) => {
             resolve(false);
@@ -69,15 +75,17 @@ class WebosPlusDevice extends Homey.Device {
       .register()
       .getArgument('app')
       .registerAutocompleteListener((query, args) => {
-        return new Promise((resolve) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
           let apps = [];
-          if (this.launchPoints.apps.length < 1 || this.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
-            if (!this.lgtv) {
+          if (device.launchPoints.apps.length < 1 || device.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
+            await device.connect();
+            if (!device.lgtv) {
               return;
             }
-            this.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
+            device.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
               if (result) {
-                this.launchPoints.apps = result.launchPoints.map(point => {
+                device.launchPoints.apps = result.launchPoints.map(point => {
                   return {
                     name: point.title,
                     image: point.icon,
@@ -85,18 +93,75 @@ class WebosPlusDevice extends Homey.Device {
                   };
                 });
               }
-              apps = this.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+              apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
               apps = apps.sort((a, b) => {
                 return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
               });
               resolve(apps);
             });
           } else {
-            apps = this.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+            apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
             apps = apps.sort((a, b) => {
               return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
             });
             resolve(apps);
+          }
+        });
+      });
+
+    Homey.app._actionChangeChannelList
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        const driver = device.getDriver();
+        return new Promise((resolve, reject) => {
+          // driver.ready(() => {
+            driver.changeChannelTo(device, args.channel.number).then(() => {
+              resolve(true)
+            }, () => resolve(true));
+          });
+        // });
+      })
+      .register()
+      .getArgument('channel')
+      .registerAutocompleteListener((query, args) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
+          let channels = [];
+          if (device.channelList.channels.length < 1 || device.channelList.date < new Date().setDate(new Date().getDate() - 1)) {
+            device.connect();
+            if (!device.lgtv) {
+              return;
+            }
+            device.lgtv.request('ssap://tv/getChannelList', (err, result) => {
+              if (err) {
+                device.error(err);
+              }
+              if (result) {
+                device.channelList.channels = result.channelList.map(channel => {
+                  return {
+                    name: channel.channelName,
+                    description: channel.channelNumber,
+                    number: channel.channelNumber,
+                    search: `${channel.channelNumber} ${channel.channelName}`
+                  };
+                });
+              }
+              channels = device.channelList.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
+              channels = channels.sort((a, b) => {
+                const numA = parseInt(a.number);
+                const numB = parseInt(b.number);
+                return numA > numB ? 1 : numB > numA ? -1 : 0;
+              });
+              resolve(channels);
+            });
+          } else {
+            channels = device.channelList.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
+            channels = channels.sort((a, b) => {
+              const numA = parseInt(a.number);
+              const numB = parseInt(b.number);
+              return numA > numB ? 1 : numB > numA ? -1 : 0;
+            });
+            resolve(channels);
           }
         });
       });
@@ -178,6 +243,7 @@ class WebosPlusDevice extends Homey.Device {
     if (this.lgtv && this.connected) {
       return;
     }
+    this.log(`Connect to TV ${this.settings.ipAddress}`);
 
     this.lgtv = require('./lgtv2/lgtv2')({
       url: `ws://${this.settings.ipAddress}:3000`,
@@ -196,6 +262,7 @@ class WebosPlusDevice extends Homey.Device {
 
     return new Promise((resolve, reject) => {
       this.lgtv.on('error', (err) => {
+        this.error(err);
         resolve(true);
       });
 
@@ -203,7 +270,6 @@ class WebosPlusDevice extends Homey.Device {
         this.connected = true;
         this.log('connected');
         this.checkVolume();
-        resolve(true);
       });
     });
   }

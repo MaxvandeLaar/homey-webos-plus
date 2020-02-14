@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
@@ -93,7 +93,29 @@
             }
           },
           {
-            "name": "webos-device",
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
+        "id": "change_channel_list",
+        "title": {
+          "en": "Change the channel with list",
+          "nl": "Verander het kanaal met lijst"
+        },
+        "args": [
+          {
+            "name": "channel",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
+          },
+          {
+            "name": "webosDevice",
             "type": "device",
             "filter": "driver_id=webos_plus"
           }
