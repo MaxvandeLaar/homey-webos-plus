@@ -87,6 +87,20 @@ class WebosPlusDriver extends Homey.Driver {
     if( matches ) return matches[0].replace(re2,'');
     return null;
   }
+
+
+  changeChannelTo(device, channelNumber) {
+    return new Promise(async (resolve, reject) => {
+      await device.connect();
+      device.lgtv.request(`sapp://tv/openChannel`, {channelNumber}, (err, res) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
 }
 
 module.exports = WebosPlusDriver;
