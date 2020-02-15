@@ -398,7 +398,7 @@
             ]
           },
           {
-            "name": "webos-device",
+            "name": "webosDevice",
             "type": "device",
             "filter": "driver_id=webos_plus"
           }

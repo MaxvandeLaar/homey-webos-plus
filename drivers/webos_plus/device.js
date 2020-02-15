@@ -26,7 +26,6 @@ class WebosPlusDevice extends Homey.Device {
       this.connect();
       this.registerListeners();
       this.poll();
-      this.flowActions();
     });
   }
 
@@ -58,126 +57,6 @@ class WebosPlusDevice extends Homey.Device {
     this.registerCapabilityListener('volume_down', this.setVolumeUpDown.bind(this, false));
     this.registerCapabilityListener('channel_up', this.setChannelUpDown.bind(this, 'channelUp'));
     this.registerCapabilityListener('channel_down', this.setChannelUpDown.bind(this, 'channelDown'));
-  }
-
-  flowActions() {
-    Homey.app._actionLaunchApp
-      .registerRunListener((args, state) => {
-        const device = args.webosDevice;
-        return new Promise((resolve, reject) => {
-          device.launchApp(args.app.id).then(() => {
-            resolve(true);
-          }, (_error) => {
-            resolve(false);
-          });
-        });
-      })
-      .register()
-      .getArgument('app')
-      .registerAutocompleteListener((query, args) => {
-        const device = args.webosDevice;
-        return new Promise(async (resolve) => {
-          let apps = [];
-          if (device.launchPoints.apps.length < 1 || device.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
-            await device.connect();
-            if (!device.lgtv) {
-              return;
-            }
-            device.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
-              if (result) {
-                device.launchPoints.apps = result.launchPoints.map(point => {
-                  return {
-                    name: point.title,
-                    image: point.icon,
-                    id: point.id
-                  };
-                });
-              }
-              apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
-              apps = apps.sort((a, b) => {
-                return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
-              });
-              resolve(apps);
-            });
-          } else {
-            apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
-            apps = apps.sort((a, b) => {
-              return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
-            });
-            resolve(apps);
-          }
-        });
-      });
-
-    Homey.app._actionChangeChannelList
-      .registerRunListener((args, state) => {
-        const device = args.webosDevice;
-        const driver = device.getDriver();
-        return new Promise((resolve, reject) => {
-          // driver.ready(() => {
-            driver.changeChannelTo(device, args.channel.number).then(() => {
-              resolve(true)
-            }, () => resolve(true));
-          });
-        // });
-      })
-      .register()
-      .getArgument('channel')
-      .registerAutocompleteListener((query, args) => {
-        const device = args.webosDevice;
-        return new Promise(async (resolve) => {
-          let channels = [];
-          if (device.channelList.channels.length < 1 || device.channelList.date < new Date().setDate(new Date().getDate() - 1)) {
-            device.connect();
-            if (!device.lgtv) {
-              return;
-            }
-            device.lgtv.request('ssap://tv/getChannelList', (err, result) => {
-              if (err) {
-                device.error(err);
-              }
-              if (result) {
-                device.channelList.channels = result.channelList.map(channel => {
-                  return {
-                    name: channel.channelName,
-                    description: channel.channelNumber,
-                    number: channel.channelNumber,
-                    search: `${channel.channelNumber} ${channel.channelName}`
-                  };
-                });
-              }
-              channels = device.channelList.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
-              channels = channels.sort((a, b) => {
-                const numA = parseInt(a.number);
-                const numB = parseInt(b.number);
-                return numA > numB ? 1 : numB > numA ? -1 : 0;
-              });
-              resolve(channels);
-            });
-          } else {
-            channels = device.channelList.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
-            channels = channels.sort((a, b) => {
-              const numA = parseInt(a.number);
-              const numB = parseInt(b.number);
-              return numA > numB ? 1 : numB > numA ? -1 : 0;
-            });
-            resolve(channels);
-          }
-        });
-      });
-
-    Homey.app._actionSimulateButton
-      .registerRunListener((args, state) => {
-        return new Promise((resolve, reject) => {
-          this.simulateButton(args.button).then(() => {
-            resolve(true);
-          }, (_error) => {
-            reject(false)
-          });
-        });
-      })
-      .register()
-      .getArgument('button');
   }
 
   onSettings(oldSettings, newSettings, changedKeys) {
@@ -347,6 +226,19 @@ class WebosPlusDevice extends Homey.Device {
       if (err) {
         this.error(err);
       }
+    });
+  }
+
+  changeChannelTo(channelNumber) {
+    return new Promise(async (resolve, reject) => {
+      await this.connect();
+      this.lgtv.request(`sapp://tv/openChannel`, {channelNumber}, (err, res) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(true);
+        }
+      });
     });
   }
 
