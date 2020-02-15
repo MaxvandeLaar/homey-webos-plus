@@ -78,6 +78,26 @@
     "triggers": [],
     "actions": [
       {
+        "id": "change_channel_number",
+        "title": {
+          "en": "Change channel (number)",
+          "nl": "Verander het kanaal (nummer)"
+        },
+        "args": [
+          {
+            "name": "channel",
+            "type": "number",
+            "min": 0,
+            "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
         "id": "launch_app",
         "title": {
           "en": "Launch app or input",
@@ -102,8 +122,8 @@
       {
         "id": "change_channel_list",
         "title": {
-          "en": "Change the channel with list",
-          "nl": "Verander het kanaal met lijst"
+          "en": "Change the channel (list)",
+          "nl": "Verander het kanaal (lijst)"
         },
         "args": [
           {

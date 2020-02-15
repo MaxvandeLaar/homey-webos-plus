@@ -17,13 +17,15 @@ class WebosPlusDriver extends Homey.Driver {
   initActions() {
     this._actionChangeChannelList = new Homey.FlowCardAction('change_channel_list');
     this.actionChangeChannelList();
+    this._actionChangeChannelNumber = new Homey.FlowCardAction('change_channel_number');
+    this.actionChangeChannelNumber();
     this._actionLaunchApp = new Homey.FlowCardAction('launch_app');
     this.actionLaunchApp();
     this._actionSimulateButton = new Homey.FlowCardAction('simulate_button');
     this.actionSimulateButton();
   }
 
-  actionSimulateButton(){
+  actionSimulateButton() {
     this._actionSimulateButton
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
@@ -39,13 +41,27 @@ class WebosPlusDriver extends Homey.Driver {
       .getArgument('button');
   }
 
+  actionChangeChannelNumber() {
+    this._actionChangeChannelNumber
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        return new Promise((resolve, reject) => {
+          device.changeChannelTo(`${args.channel}`).then(() => {
+            resolve(true);
+          }, () => resolve(true));
+        });
+      })
+      .register()
+      .getArgument('channel');
+  }
+
   actionChangeChannelList() {
     this._actionChangeChannelList
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         return new Promise((resolve, reject) => {
           device.changeChannelTo(args.channel.number).then(() => {
-            resolve(true)
+            resolve(true);
           }, () => resolve(true));
         });
       })
@@ -95,7 +111,7 @@ class WebosPlusDriver extends Homey.Driver {
       });
   }
 
-  actionLaunchApp(){
+  actionLaunchApp() {
     this._actionLaunchApp
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
