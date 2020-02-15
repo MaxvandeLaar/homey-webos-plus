@@ -149,6 +149,7 @@ class WebosPlusDevice extends Homey.Device {
         this.connected = true;
         this.log('connected');
         this.checkVolume();
+        resolve(true);
       });
     });
   }
