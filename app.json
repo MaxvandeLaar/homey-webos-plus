@@ -173,6 +173,28 @@
             "filter": "driver_id=webos_plus"
           }
         ]
+      },
+      {
+        "id": "webos_app",
+        "title": {
+          "en": "App/input !{{is|isn't}}",
+          "nl": "App/input !{{is|is niet}}"
+        },
+        "args": [
+          {
+            "name": "app",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
       }
     ],
     "actions": [

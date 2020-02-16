@@ -26,6 +26,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.conditionVolumeLarger();
     this._conditionChannel = new Homey.FlowCardCondition('webos_channel');
     this.conditionChannel();
+    this._conditionApp = new Homey.FlowCardCondition('webos_app');
+    this.conditionApp();
   }
 
   initActions() {
@@ -98,6 +100,59 @@ class WebosPlusDriver extends Homey.Driver {
         const device = args.webosDevice;
         const muted = device.getValue('volume_mute');
         return Promise.resolve(muted);
+      });
+  }
+
+  conditionApp(){
+    this._conditionApp
+      .register()
+      .registerRunListener(async (args, state) => {
+        const device = args.webosDevice;
+        console.log(args.app);
+        const app = args.app;
+        return new Promise((resolve, reject) => {
+          device.getCurrentApp().then((res) => {
+              resolve(app.id === res.appId);
+            },
+            (err) => {
+              reject(err)
+            });
+        });
+      })
+      .getArgument('app')
+      .registerAutocompleteListener((query, args) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
+          let apps = [];
+          if (device.launchPoints.apps.length < 1 || device.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
+            await device.connect();
+            if (!device.lgtv) {
+              return;
+            }
+            device.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
+              if (result) {
+                device.launchPoints.apps = result.launchPoints.map(point => {
+                  return {
+                    name: point.title,
+                    image: point.icon,
+                    id: point.id
+                  };
+                });
+              }
+              apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+              apps = apps.sort((a, b) => {
+                return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
+              });
+              resolve(apps);
+            });
+          } else {
+            apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+            apps = apps.sort((a, b) => {
+              return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
+            });
+            resolve(apps);
+          }
+        });
       });
   }
 
