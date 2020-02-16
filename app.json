@@ -78,6 +78,36 @@
     "triggers": [],
     "actions": [
       {
+        "id": "send_toast",
+        "title": {
+          "en": "Send a toast message",
+          "nl": "Stuur een toast bericht"
+        },
+        "args": [
+          {
+            "name": "message",
+            "type": "text",
+            "placeholder": {
+              "en": "Required",
+              "nl": "Verplicht"
+            }
+          },
+          {
+            "name": "iconData",
+            "type": "text",
+            "placeholder": {
+              "en": "Image Base64 (without 'data:image/*;base64,')",
+              "nl": "Image Base64 (zonder 'data:image/*;base64,')"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
         "id": "change_channel_number",
         "title": {
           "en": "Change channel (number)",

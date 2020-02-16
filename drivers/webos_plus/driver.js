@@ -23,6 +23,22 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionLaunchApp();
     this._actionSimulateButton = new Homey.FlowCardAction('simulate_button');
     this.actionSimulateButton();
+    this._actionSendToast = new Homey.FlowCardAction('send_toast');
+    this.actionSendToast();
+  }
+
+  actionSendToast() {
+    this._actionSendToast
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        const {message, iconData} = args;
+        return new Promise((resolve, reject) => {
+          device.sendToast(message,  iconData).then(() => {
+            resolve(true);
+          }, () => {resolve(true)});
+        });
+      })
+      .register()
   }
 
   actionSimulateButton() {
