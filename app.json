@@ -78,6 +78,26 @@
     "triggers": [],
     "conditions": [
       {
+        "id": "webos_channel",
+        "title": {
+          "en": "Channel !{{is|isn't}}",
+          "nl": "Kanaal !{{is|is niet}}"
+        },
+        "args": [
+          {
+            "name": "channel",
+            "type": "number",
+            "min": 0,
+            "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
         "id": "webos_muted",
         "title": {
           "en": "The tv !{{is|isn't}} muted",

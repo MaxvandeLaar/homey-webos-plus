@@ -237,7 +237,6 @@ class WebosPlusDevice extends Homey.Device {
       data['iconData'] = iconData;
       data['iconExtension'] = iconExtension;
     }
-    this.log('data', data);
     return new Promise((resolve, reject) => {
       this.lgtv.request('ssap://system.notifications/createToast', data, (err, res) => {
         if (err) {
@@ -252,13 +251,25 @@ class WebosPlusDevice extends Homey.Device {
   changeChannelTo(channelNumber) {
     return new Promise(async (resolve, reject) => {
       await this.connect();
-      this.lgtv.request(`sapp://tv/openChannel`, {channelNumber}, (err, res) => {
+      this.lgtv.request(`ssap://tv/openChannel`, {channelNumber}, (err, res) => {
         if (err) {
           reject(err)
         } else {
           resolve(true);
         }
       });
+    });
+  }
+
+  getCurrentChannel(){
+    return new Promise(async (resolve, reject) => {
+      await this.connect();
+      this.lgtv.request('ssap://tv/getCurrentChannel', (err, res) => {
+        if (err){
+          reject(err);
+        }
+        resolve(res);
+      })
     });
   }
 
