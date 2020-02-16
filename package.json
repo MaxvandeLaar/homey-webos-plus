@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "deploy": "npm install && homey app install",
-    "install": "homey app install",
+    "release": "./release.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Max van de Laar",
@@ -14,8 +14,5 @@
     "mac-regex": "^1.0.0",
     "node-wol": "^0.1.1",
     "websocket": "^1.0.30"
-  },
-  "devDependencies": {
-    "homey": "^2.1.5"
   }
 }
