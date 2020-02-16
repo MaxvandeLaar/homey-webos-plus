@@ -192,19 +192,19 @@
             }
           },
           {
-            "name": "iconData",
-            "type": "text",
-            "placeholder": {
-              "en": "Image Base64 (without 'data:image/*;base64,')",
-              "nl": "Image Base64 (zonder 'data:image/*;base64,')"
-            }
-          },
-          {
             "name": "iconExtension",
             "type": "text",
             "placeholder": {
               "en": "The image extension",
               "nl": "De extensie van de afbeelding"
+            }
+          },
+          {
+            "name": "iconData",
+            "type": "text",
+            "placeholder": {
+              "en": "Image Base64 (without 'data:image/*;base64,')",
+              "nl": "Image Base64 (zonder 'data:image/*;base64,')"
             }
           },
           {
