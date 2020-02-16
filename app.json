@@ -76,6 +76,22 @@
   },
   "flow": {
     "triggers": [],
+    "conditions": [
+      {
+        "id": "webos_muted",
+        "title": {
+          "en": "The tv !{{is|isn't}} muted",
+          "nl": "De tv !{{is|is niet}} gemuted"
+        },
+        "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      }
+    ],
     "actions": [
       {
         "id": "send_toast",

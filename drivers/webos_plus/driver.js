@@ -11,7 +11,13 @@ class WebosPlusDriver extends Homey.Driver {
 
   ready(callback) {
     this.initActions();
+    this.initConditions();
     callback();
+  }
+
+  initConditions() {
+    this._conditionMuted = new Homey.FlowCardCondition('webos_muted');
+    this.conditionMuted();
   }
 
   initActions() {
@@ -27,15 +33,27 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSendToast();
   }
 
+  conditionMuted() {
+    this._conditionMuted
+      .register()
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        const muted = device.getValue('volume_mute');
+        return Promise.resolve(muted);
+      });
+  }
+
   actionSendToast() {
     this._actionSendToast
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const {message, iconData} = args;
         return new Promise((resolve, reject) => {
-          device.sendToast(message,  iconData).then(() => {
+          device.sendToast(message, iconData).then(() => {
             resolve(true);
-          }, () => {resolve(true)});
+          }, () => {
+            resolve(true)
+          });
         });
       })
       .register()
