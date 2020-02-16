@@ -319,6 +319,10 @@ class WebosPlusDevice extends Homey.Device {
       return this.turnOn();
     }
   }
+
+  getValue(name){
+    return this.getCapabilityValue(name);
+  }
 }
 
 module.exports = WebosPlusDevice;
