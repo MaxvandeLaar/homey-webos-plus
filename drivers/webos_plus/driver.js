@@ -108,7 +108,6 @@ class WebosPlusDriver extends Homey.Driver {
       .register()
       .registerRunListener(async (args, state) => {
         const device = args.webosDevice;
-        console.log(args.app);
         const app = args.app;
         return new Promise((resolve, reject) => {
           device.getCurrentApp().then((res) => {
@@ -123,35 +122,8 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          let apps = [];
-          if (device.launchPoints.apps.length < 1 || device.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
-            await device.connect();
-            if (!device.lgtv) {
-              return;
-            }
-            device.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
-              if (result) {
-                device.launchPoints.apps = result.launchPoints.map(point => {
-                  return {
-                    name: point.title,
-                    image: point.icon,
-                    id: point.id
-                  };
-                });
-              }
-              apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
-              apps = apps.sort((a, b) => {
-                return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
-              });
-              resolve(apps);
-            });
-          } else {
-            apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
-            apps = apps.sort((a, b) => {
-              return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
-            });
-            resolve(apps);
-          }
+          const apps = await device.getAppList(query);
+          resolve(apps);
         });
       });
   }
@@ -217,43 +189,8 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          let channels = [];
-          if (device.channelList.channels.length < 1 || device.channelList.date < new Date().setDate(new Date().getDate() - 1)) {
-            device.connect();
-            if (!device.lgtv) {
-              return;
-            }
-            device.lgtv.request('ssap://tv/getChannelList', (err, result) => {
-              if (err) {
-                device.error(err);
-              }
-              if (result) {
-                device.channelList.channels = result.channelList.map(channel => {
-                  return {
-                    name: channel.channelName,
-                    description: channel.channelNumber,
-                    number: channel.channelNumber,
-                    search: `${channel.channelNumber} ${channel.channelName}`
-                  };
-                });
-              }
-              channels = device.channelList.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
-              channels = channels.sort((a, b) => {
-                const numA = parseInt(a.number);
-                const numB = parseInt(b.number);
-                return numA > numB ? 1 : numB > numA ? -1 : 0;
-              });
-              resolve(channels);
-            });
-          } else {
-            channels = device.channelList.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
-            channels = channels.sort((a, b) => {
-              const numA = parseInt(a.number);
-              const numB = parseInt(b.number);
-              return numA > numB ? 1 : numB > numA ? -1 : 0;
-            });
-            resolve(channels);
-          }
+          const channels = await device.getChannelList(query);
+          resolve(channels);
         });
       });
   }
@@ -275,35 +212,8 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          let apps = [];
-          if (device.launchPoints.apps.length < 1 || device.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
-            await device.connect();
-            if (!device.lgtv) {
-              return;
-            }
-            device.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
-              if (result) {
-                device.launchPoints.apps = result.launchPoints.map(point => {
-                  return {
-                    name: point.title,
-                    image: point.icon,
-                    id: point.id
-                  };
-                });
-              }
-              apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
-              apps = apps.sort((a, b) => {
-                return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
-              });
-              resolve(apps);
-            });
-          } else {
-            apps = device.launchPoints.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
-            apps = apps.sort((a, b) => {
-              return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
-            });
-            resolve(apps);
-          }
+          const apps = await device.getAppList(query);
+          resolve(apps);
         });
       });
   }
