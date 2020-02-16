@@ -261,11 +261,11 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
-  getCurrentChannel(){
+  getCurrentChannel() {
     return new Promise(async (resolve, reject) => {
       await this.connect();
       this.lgtv.request('ssap://tv/getCurrentChannel', (err, res) => {
-        if (err){
+        if (err) {
           reject(err);
         }
         resolve(res);
@@ -273,11 +273,87 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
-  getCurrentApp(){
+  getAppList(query = '') {
+    function _filter(list, query) {
+      let tmp = list.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+      return tmp.sort((a, b) => {
+        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
+      });
+    }
+
+    return new Promise(async (resolve) => {
+      let apps = [];
+      if (this.launchPoints.apps.length < 1 || this.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
+        await this.connect();
+        if (!this.lgtv) {
+          return;
+        }
+        this.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
+          if (result) {
+            this.launchPoints.apps = result.launchPoints.map(point => {
+              return {
+                name: point.title,
+                image: point.icon,
+                id: point.id
+              };
+            });
+          }
+          apps = _filter(this.launchPoints, query);
+          resolve(apps);
+        });
+      } else {
+        apps = _filter(this.launchPoints, query);
+        resolve(apps);
+      }
+    });
+  }
+
+  getChannelList(query = '') {
+    function _filter(list, query){
+      let tmp = list.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
+      return tmp.sort((a, b) => {
+        const numA = parseInt(a.number);
+        const numB = parseInt(b.number);
+        return numA > numB ? 1 : numB > numA ? -1 : 0;
+      });
+    }
+
+    return new Promise(async (resolve) => {
+      let channels = [];
+      if (this.channelList.channels.length < 1 || this.channelList.date < new Date().setDate(new Date().getDate() - 1)) {
+        this.connect();
+        if (!this.lgtv) {
+          return;
+        }
+        this.lgtv.request('ssap://tv/getChannelList', (err, result) => {
+          if (err) {
+            this.error(err);
+          }
+          if (result) {
+            this.channelList.channels = result.channelList.map(channel => {
+              return {
+                name: channel.channelName,
+                description: channel.channelNumber,
+                number: channel.channelNumber,
+                search: `${channel.channelNumber} ${channel.channelName}`
+              };
+            });
+          }
+          channels = _filter(this.channelList, query);
+          resolve(channels);
+        });
+      } else {
+        channels = _filter(this.channelList, query);
+        resolve(channels);
+      }
+    });
+  }
+
+  getCurrentApp() {
     return new Promise(async (resolve, reject) => {
       await this.connect();
       this.lgtv.request('ssap://com.webos.applicationManager/getForegroundAppInfo', (err, res) => {
-        if (err){
+        if (err) {
           reject(err);
         }
         resolve(res)
@@ -345,7 +421,7 @@ class WebosPlusDevice extends Homey.Device {
     }
   }
 
-  getValue(name){
+  getValue(name) {
     return this.getCapabilityValue(name);
   }
 }
