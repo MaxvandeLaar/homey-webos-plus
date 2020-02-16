@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
@@ -9,8 +9,8 @@
   },
   "brandColor": "#A50034",
   "description": {
-    "en": "Adds improved WebOS integration",
-    "nl": "Voegt verbeterde WebOS integratie toe"
+    "en": "Improved WebOS integration",
+    "nl": "Verbeterde WebOS integratie toe"
   },
   "tags": {
     "en": [
@@ -38,14 +38,12 @@
     "small": "/assets/images/small.png"
   },
   "author": {
-    "name": "Max van de Laar",
-    "email": "max.vandelaar@me.com"
+    "name": "Max van de Laar"
   },
   "contributors": {
     "developers": [
       {
-        "name": "Max van de Laar",
-        "email": "max.vandelaar@me.com"
+        "name": "Max van de Laar"
       }
     ],
     "translators": [
@@ -54,6 +52,10 @@
       }
     ]
   },
+  "source": "https://github.com/MaxvandeLaar/homey-webos-plus",
+  "homepage": "https://github.com/MaxvandeLaar/homey-webos-plus",
+  "support": "https://github.com/MaxvandeLaar/homey-webos-plus/issues",
+
   "discovery": {
     "webos": {
       "type": "ssdp",
@@ -678,8 +680,8 @@
         }
       },
       "images": {
-        "large": "/drivers/webos-plus/assets/images/large.png",
-        "small": "/drivers/webos-plus/assets/images/small.png"
+        "large": "/drivers/webos_plus/assets/images/large.png",
+        "small": "/drivers/webos_plus/assets/images/small.png"
       }
     }
   ]
