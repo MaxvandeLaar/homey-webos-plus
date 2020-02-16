@@ -24,6 +24,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.conditionVolumeSmaller();
     this._conditionVolumeLarger = new Homey.FlowCardCondition('webos_volume_larger');
     this.conditionVolumeLarger();
+    this._conditionChannel = new Homey.FlowCardCondition('webos_channel');
+    this.conditionChannel();
   }
 
   initActions() {
@@ -39,7 +41,24 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSendToast();
   }
 
-  conditionVolumeLarger(){
+  conditionChannel() {
+    this._conditionChannel
+      .register()
+      .registerRunListener(async (args, state) => {
+        const device = args.webosDevice;
+        const channel = args.channel;
+        return new Promise((resolve, reject) => {
+          device.getCurrentChannel().then((res) => {
+              resolve(`${channel}` === res.channelNumber);
+            },
+            (err) => {
+              reject(err)
+            });
+        });
+      });
+  }
+
+  conditionVolumeLarger() {
     this._conditionVolumeLarger
       .register()
       .registerRunListener((args, state) => {
@@ -50,7 +69,7 @@ class WebosPlusDriver extends Homey.Driver {
       });
   }
 
-  conditionVolumeSmaller(){
+  conditionVolumeSmaller() {
     this._conditionVolumeSmaller
       .register()
       .registerRunListener((args, state) => {
@@ -61,7 +80,7 @@ class WebosPlusDriver extends Homey.Driver {
       });
   }
 
-  conditionVolumeEquals(){
+  conditionVolumeEquals() {
     this._conditionVolumeEquals
       .register()
       .registerRunListener((args, state) => {
