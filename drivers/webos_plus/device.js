@@ -273,6 +273,18 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
+  getCurrentApp(){
+    return new Promise(async (resolve, reject) => {
+      await this.connect();
+      this.lgtv.request('ssap://com.webos.applicationManager/getForegroundAppInfo', (err, res) => {
+        if (err){
+          reject(err);
+        }
+        resolve(res)
+      });
+    })
+  }
+
   turnOff() {
     if (!this.connected || !this.lgtv) {
       return;
