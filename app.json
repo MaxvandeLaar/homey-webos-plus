@@ -90,6 +90,27 @@
             "filter": "driver_id=webos_plus"
           }
         ]
+      },
+      {
+        "id": "webos_volume_equals",
+        "title": {
+          "en": "Volume equals",
+          "nl": "Het volume is gelijk aan"
+        },
+        "args": [
+          {
+            "name": "volume",
+            "type": "number",
+            "min": 0,
+            "max": 100,
+            "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
       }
     ],
     "actions": [

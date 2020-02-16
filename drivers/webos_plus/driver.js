@@ -18,6 +18,8 @@ class WebosPlusDriver extends Homey.Driver {
   initConditions() {
     this._conditionMuted = new Homey.FlowCardCondition('webos_muted');
     this.conditionMuted();
+    this._conditionVolumeEquals = new Homey.FlowCardCondition('webos_volume_equals');
+    this.conditionVolumeEquals();
   }
 
   initActions() {
@@ -31,6 +33,17 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSimulateButton();
     this._actionSendToast = new Homey.FlowCardAction('send_toast');
     this.actionSendToast();
+  }
+
+  conditionVolumeEquals(){
+    this._conditionVolumeEquals
+      .register()
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        const volume = args.volume;
+        const deviceVolume = device.getValue('volume_set');
+        return Promise.resolve(deviceVolume === volume);
+      });
   }
 
   conditionMuted() {
