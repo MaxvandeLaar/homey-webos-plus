@@ -100,3 +100,6 @@ typings/
 .dynamodb/
 
 dist
+
+build
+webos-plus.zip
