@@ -94,8 +94,50 @@
       {
         "id": "webos_volume_equals",
         "title": {
-          "en": "Volume equals",
-          "nl": "Het volume is gelijk aan"
+          "en": "Volume !{{equals|doesn't equal}}",
+          "nl": "Het volume !{{is|is niet}} gelijk aan"
+        },
+        "args": [
+          {
+            "name": "volume",
+            "type": "number",
+            "min": 0,
+            "max": 100,
+            "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
+        "id": "webos_volume_smaller",
+        "title": {
+          "en": "Volume !{{is|isn't}} smaller than",
+          "nl": "Het volume !{{is|is niet}} kleiner dan"
+        },
+        "args": [
+          {
+            "name": "volume",
+            "type": "number",
+            "min": 0,
+            "max": 100,
+            "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
+        "id": "webos_volume_larger",
+        "title": {
+          "en": "Volume !{{is|isn't}} larger than",
+          "nl": "Het volume !{{is|is niet}} groter dan"
         },
         "args": [
           {
