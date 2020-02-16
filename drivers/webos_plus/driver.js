@@ -24,8 +24,10 @@ class WebosPlusDriver extends Homey.Driver {
     this.conditionVolumeSmaller();
     this._conditionVolumeLarger = new Homey.FlowCardCondition('webos_volume_larger');
     this.conditionVolumeLarger();
-    this._conditionChannel = new Homey.FlowCardCondition('webos_channel');
-    this.conditionChannel();
+    this._conditionChannelNumber = new Homey.FlowCardCondition('webos_channel_number');
+    this.conditionChannelNumber();
+    this._conditionChannelList = new Homey.FlowCardCondition('webos_channel_list');
+    this.conditionChannelList();
     this._conditionApp = new Homey.FlowCardCondition('webos_app');
     this.conditionApp();
   }
@@ -43,8 +45,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSendToast();
   }
 
-  conditionChannel() {
-    this._conditionChannel
+  conditionChannelNumber() {
+    this._conditionChannelNumber
       .register()
       .registerRunListener(async (args, state) => {
         const device = args.webosDevice;
@@ -56,6 +58,31 @@ class WebosPlusDriver extends Homey.Driver {
             (err) => {
               reject(err)
             });
+        });
+      });
+  }
+
+  conditionChannelList(){
+    this._conditionChannelList
+      .register()
+      .registerRunListener(async (args, state) => {
+        const device = args.webosDevice;
+        const channel = args.channel;
+        return new Promise((resolve, reject) => {
+          device.getCurrentChannel().then((res) => {
+              resolve(channel.number === res.channelNumber);
+            },
+            (err) => {
+              reject(err)
+            });
+        });
+      })
+      .getArgument('channel')
+      .registerAutocompleteListener((query, args) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
+          const apps = await device.getChannelList(query);
+          resolve(apps);
         });
       });
   }

@@ -78,10 +78,10 @@
     "triggers": [],
     "conditions": [
       {
-        "id": "webos_channel",
+        "id": "webos_channel_number",
         "title": {
-          "en": "Channel !{{is|isn't}}",
-          "nl": "Kanaal !{{is|is niet}}"
+          "en": "Channel !{{is|isn't}} (number)",
+          "nl": "Kanaal !{{is|is niet}} (nummer)"
         },
         "args": [
           {
@@ -89,6 +89,28 @@
             "type": "number",
             "min": 0,
             "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
+        "id": "webos_channel_list",
+        "title": {
+          "en": "Channel !{{is|isn't}} (list)",
+          "nl": "Kanaal !{{is|is niet}} (lijst)"
+        },
+        "args": [
+          {
+            "name": "channel",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
           },
           {
             "name": "webosDevice",
