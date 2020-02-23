@@ -3,6 +3,7 @@
 const Homey = require('homey');
 const {ManagerArp} = require('homey');
 const http = require('http');
+const https = require('https');
 
 class WebosPlusDriver extends Homey.Driver {
   onInit() {
@@ -62,7 +63,7 @@ class WebosPlusDriver extends Homey.Driver {
       });
   }
 
-  conditionChannelList(){
+  conditionChannelList() {
     this._conditionChannelList
       .register()
       .registerRunListener(async (args, state) => {
@@ -130,7 +131,7 @@ class WebosPlusDriver extends Homey.Driver {
       });
   }
 
-  conditionApp(){
+  conditionApp() {
     this._conditionApp
       .register()
       .registerRunListener(async (args, state) => {
@@ -160,8 +161,13 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const {message, iconData} = args;
-        return new Promise((resolve, reject) => {
-          device.sendToast(message, iconData).then(() => {
+        let icon = iconData;
+        return new Promise(async (resolve, reject) => {
+          if (this._isUrl(iconData)) {
+              icon = await this.encodeImage(iconData);
+          }
+
+          device.sendToast(message, icon).then(() => {
             resolve(true);
           }, () => {
             resolve(true)
@@ -311,6 +317,42 @@ class WebosPlusDriver extends Homey.Driver {
         response.on('error', (err) => {
           reject(err);
         })
+      });
+    });
+  }
+
+  _isUrl(str) {
+    const regexp = new RegExp(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/i);
+    return regexp.test(str);
+  }
+
+  encodeImage(imageUrl) {
+    return new Promise((resolve, reject) => {
+      let request = https;
+      if (imageUrl.startsWith('https')) {
+        request = https;
+      } else if (imageUrl.startsWith('http')) {
+        request = http;
+      } else {
+        request = http;
+        imageUrl = `http://${imageUrl}`;
+      }
+
+      request.get(imageUrl, (response) => {
+        response.setEncoding('binary');
+        const type = response.headers['content-type'];
+        const prefix = `data:${type};base64,`;
+        let body = '';
+
+        response.on('data', (chunk) => {
+          body += chunk;
+        });
+
+        response.on('end', () => {
+          const base64 = Buffer.from(body, 'binary').toString('base64');
+          const data = prefix + base64;
+          return resolve(data);
+        });
       });
     });
   }
