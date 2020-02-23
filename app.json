@@ -233,8 +233,8 @@
             "name": "message",
             "type": "text",
             "placeholder": {
-              "en": "Required",
-              "nl": "Verplicht"
+              "en": "Alert text (Required)",
+              "nl": "Melding tekst (Verplicht)"
             }
           },
           {
@@ -242,8 +242,8 @@
             "type": "text",
             "required": false,
             "placeholder": {
-              "en": "Image Base64 (without 'data:image/*;base64,')",
-              "nl": "Image Base64 (zonder 'data:image/*;base64,')"
+              "en": "Image URL or Base64 (optional)",
+              "nl": "Afbeelding URL of Base64 (optional)"
             }
           },
           {

@@ -334,8 +334,8 @@ class WebosPlusDriver extends Homey.Driver {
       } else if (imageUrl.startsWith('http')) {
         request = http;
       } else {
-        request = http;
-        imageUrl = `http://${imageUrl}`;
+        request = https;
+        imageUrl = `https://${imageUrl}`;
       }
 
       request.get(imageUrl, (response) => {
