@@ -1,6 +1,6 @@
 {
   "1.0.1": {
-    "en": "Toast message variables for the icon no longer required.\nRemoved icon extension variable as 'tiff' works for most image types."
+    "en": "Toast message variables for the icon no longer required.\nRemoved icon extension variable as 'tiff' works for most image types.\nAccept urls as icon for toast messages"
   },
   "1.0.0": {
     "en": "Inital app release"
