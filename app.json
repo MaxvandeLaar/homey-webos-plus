@@ -238,15 +238,6 @@
             }
           },
           {
-            "name": "iconExtension",
-            "type": "text",
-            "required": false,
-            "placeholder": {
-              "en": "The image extension",
-              "nl": "De extensie van de afbeelding"
-            }
-          },
-          {
             "name": "iconData",
             "type": "text",
             "required": false,

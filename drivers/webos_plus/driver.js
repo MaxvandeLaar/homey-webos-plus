@@ -159,9 +159,9 @@ class WebosPlusDriver extends Homey.Driver {
     this._actionSendToast
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
-        const {message, iconData, iconExtension} = args;
+        const {message, iconData} = args;
         return new Promise((resolve, reject) => {
-          device.sendToast(message, iconData, iconExtension).then(() => {
+          device.sendToast(message, iconData).then(() => {
             resolve(true);
           }, () => {
             resolve(true)
