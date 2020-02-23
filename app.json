@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
@@ -240,6 +240,7 @@
           {
             "name": "iconExtension",
             "type": "text",
+            "required": false,
             "placeholder": {
               "en": "The image extension",
               "nl": "De extensie van de afbeelding"
@@ -248,6 +249,7 @@
           {
             "name": "iconData",
             "type": "text",
+            "required": false,
             "placeholder": {
               "en": "Image Base64 (without 'data:image/*;base64,')",
               "nl": "Image Base64 (zonder 'data:image/*;base64,')"
