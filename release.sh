@@ -1,9 +1,15 @@
 #!/bin/bash
 
-npm install
-rm -rf ./build
-mkdir ./build
-cp -rf ./assets ./drivers ./locales ./node_modules ./build/
-cp ./app.js ./app.json .homeychangelog.json ./LICENSE ./package.json ./package-lock.json ./README.md README.txt README.nl.txt ./build/
+version=`jq '.version' app.json -r`
+webosName=webos-plus-v$version
 
-zip -r webos-plus.zip ./build
+rootDir=./dist
+distDir=$rootDir/$webosName/
+
+npm install
+rm -rf $rootDir
+mkdir -p $distDir
+cp -rf ./assets ./drivers ./locales ./node_modules $distDir
+cp ./app.js ./app.json .homeychangelog.json ./LICENSE ./package.json ./package-lock.json ./README.md README.txt README.nl.txt $distDir
+
+cd $rootDir && zip -r $webosName.zip ./$webosName
