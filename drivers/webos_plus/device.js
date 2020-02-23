@@ -234,8 +234,11 @@ class WebosPlusDevice extends Homey.Device {
     await this.connect();
     let data = {message};
     if (iconData) {
-      data['iconData'] = iconData;
       data['iconExtension'] = 'tiff';
+      data['iconData'] = iconData;
+      if (data.iconData.includes(',')) {
+        data.iconData = data.iconData.split(',')[1];
+      }
     }
     return new Promise((resolve, reject) => {
       this.lgtv.request('ssap://system.notifications/createToast', data, (err, res) => {
