@@ -99,5 +99,4 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-build
-webos-plus.zip
+dist
