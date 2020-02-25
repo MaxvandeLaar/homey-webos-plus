@@ -55,7 +55,6 @@
   "source": "https://github.com/MaxvandeLaar/homey-webos-plus",
   "homepage": "https://github.com/MaxvandeLaar/homey-webos-plus",
   "support": "https://github.com/MaxvandeLaar/homey-webos-plus/issues",
-
   "discovery": {
     "webos": {
       "type": "ssdp",
@@ -79,6 +78,89 @@
   "flow": {
     "triggers": [],
     "conditions": [
+      {
+        "id": "webos_sound_output",
+        "title": {
+          "en": "Sound output !{{is|isn't}}",
+          "nl": "Geluidsuitgang !{{is|is niet}}"
+        },
+        "args": [
+          {
+            "name": "output",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "tv_speaker",
+                "label": {
+                  "en": "TV speaker",
+                  "nl": "TV speaker"
+                }
+              },
+              {
+                "id": "external_speaker",
+                "label": {
+                  "en": "External speaker",
+                  "nl": "Externe speaker"
+                }
+              },
+              {
+                "id": "external_optical",
+                "label": {
+                  "en": "External optical",
+                  "nl": "Externe optische"
+                }
+              },
+              {
+                "id": "external_arc",
+                "label": {
+                  "en": "External ARC",
+                  "nl": "Externe ARC"
+                }
+              },
+              {
+                "id": "lineout",
+                "label": {
+                  "en": "Line out",
+                  "nl": "Line out"
+                }
+              },
+              {
+                "id": "headphone",
+                "label": {
+                  "en": "Headphone",
+                  "nl": "Koptelefoon"
+                }
+              },
+              {
+                "id": "tv_external_speaker",
+                "label": {
+                  "en": "TV external speaker",
+                  "nl": "TV externe speaker"
+                }
+              },
+              {
+                "id": "tv_speaker_headphone",
+                "label": {
+                  "en": "TV speaker headphone",
+                  "nl": "TV speaker koptelefoon"
+                }
+              },
+              {
+                "id": "bt_soundbar",
+                "label": {
+                  "en": "Bluetooth soundbar",
+                  "nl": "Bluetooth soundbar"
+                }
+              }
+            ]
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
       {
         "id": "webos_channel_number",
         "title": {
@@ -245,6 +327,93 @@
               "en": "Image URL or Base64 (optional)",
               "nl": "Afbeelding URL of Base64 (optional)"
             }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
+        "id": "change_sound_output",
+        "title": {
+          "en": "Change the sound output",
+          "nl": "Verander de geluidsuitgang"
+        },
+        "args": [
+          {
+            "name": "output",
+            "type": "dropdown",
+            "placeholder": {
+              "en": "Select an output",
+              "nl": "Selecteer een uitgang"
+            },
+            "values": [
+              {
+                "id": "tv_speaker",
+                "label": {
+                  "en": "TV speaker",
+                  "nl": "TV speaker"
+                }
+              },
+              {
+                "id": "external_speaker",
+                "label": {
+                  "en": "External speaker",
+                  "nl": "Externe speaker"
+                }
+              },
+              {
+                "id": "external_optical",
+                "label": {
+                  "en": "External optical",
+                  "nl": "Externe optische"
+                }
+              },
+              {
+                "id": "external_arc",
+                "label": {
+                  "en": "External ARC",
+                  "nl": "Externe ARC"
+                }
+              },
+              {
+                "id": "lineout",
+                "label": {
+                  "en": "Line out",
+                  "nl": "Line out"
+                }
+              },
+              {
+                "id": "headphone",
+                "label": {
+                  "en": "Headphone",
+                  "nl": "Koptelefoon"
+                }
+              },
+              {
+                "id": "tv_external_speaker",
+                "label": {
+                  "en": "TV external speaker",
+                  "nl": "TV externe speaker"
+                }
+              },
+              {
+                "id": "tv_speaker_headphone",
+                "label": {
+                  "en": "TV speaker headphone",
+                  "nl": "TV speaker koptelefoon"
+                }
+              },
+              {
+                "id": "bt_soundbar",
+                "label": {
+                  "en": "Bluetooth soundbar",
+                  "nl": "Bluetooth soundbar"
+                }
+              }
+            ]
           },
           {
             "name": "webosDevice",

@@ -31,6 +31,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.conditionChannelList();
     this._conditionApp = new Homey.FlowCardCondition('webos_app');
     this.conditionApp();
+    this._conditionSoundOutput = new Homey.FlowCardCondition('webos_sound_output');
+    this.conditionSoundOutput();
   }
 
   initActions() {
@@ -44,6 +46,22 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSimulateButton();
     this._actionSendToast = new Homey.FlowCardAction('send_toast');
     this.actionSendToast();
+    this._actionChangeSoundOutput = new Homey.FlowCardAction('change_sound_output');
+    this.actionChangeSoundOutput();
+  }
+
+  conditionSoundOutput() {
+    this._conditionSoundOutput
+      .register()
+      .registerRunListener(async (args, state) => {
+        const device = args.webosDevice;
+        const output = args.output;
+        return new Promise((resolve, reject) => {
+          device.getCurrentSoundOutput().then((res) => {
+            resolve(res.toLowerCase() === output.toLowerCase())
+          }, reject);
+        });
+      });
   }
 
   conditionChannelNumber() {
@@ -156,6 +174,20 @@ class WebosPlusDriver extends Homey.Driver {
       });
   }
 
+  actionChangeSoundOutput() {
+    this._actionChangeSoundOutput
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        const {output} = args;
+        return new Promise((resolve, reject) => {
+          device.setSoundOutput(output).then(() => {
+            resolve(true);
+          }, reject)
+        });
+      })
+      .register();
+  }
+
   actionSendToast() {
     this._actionSendToast
       .registerRunListener((args, state) => {
@@ -164,7 +196,7 @@ class WebosPlusDriver extends Homey.Driver {
         let icon = iconData;
         return new Promise(async (resolve, reject) => {
           if (this._isUrl(iconData)) {
-              icon = await this.encodeImage(iconData);
+            icon = await this.encodeImage(iconData);
           }
 
           device.sendToast(message, icon).then(() => {
