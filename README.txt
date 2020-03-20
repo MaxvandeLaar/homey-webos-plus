@@ -23,6 +23,7 @@ Besides the basic capabilities you can create amazing flows:
   - Set channel via list selection
   - Set input source or app via list selection
   - Simulate remote control button (e.g. Left, Exit, Menu, Ok)
+  - Toast with optional icon
 
 * Conditions:
   - On/Off
@@ -35,3 +36,5 @@ Besides the basic capabilities you can create amazing flows:
   - On/Off
   - Channel change
   - Volume change
+  - App/input change
+  - Sound ouput change

@@ -24,6 +24,7 @@ Naast de basis capabilities kan je mooie flows maken:
   - Zet kanaal via lijst selectie
   - Verander input of start app met lijst selectie
   - Simuleer afstandbediening knoppen (e.g. Links, Exit, Menu, Ok)
+  - Toat message incl. optionele icon
 
 * Conditions:
   - Aan/uit
@@ -36,3 +37,5 @@ Naast de basis capabilities kan je mooie flows maken:
   - Aan/uit
   - Kanaal veranderd
   - Volume veranderd
+  - App/input veranderd
+  - Geluidsuitgang veranderd
