@@ -19,10 +19,18 @@ class WebosPlusDriver extends Homey.Driver {
 
   initTriggers() {
     this._triggerChannelChanged = new Homey.FlowCardTriggerDevice('webos_channel_changed').register();
+    this._triggerAppChanged = new Homey.FlowCardTriggerDevice('webos_app_changed').register();
   }
 
   triggerChannelChanged( device, tokens, state ) {
     this._triggerChannelChanged
+      .trigger( device, tokens, state )
+      .then( this.log )
+      .catch( this.error );
+  }
+
+  triggerAppChanged( device, tokens, state ) {
+    this._triggerAppChanged
       .trigger( device, tokens, state )
       .then( this.log )
       .catch( this.error );

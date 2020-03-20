@@ -201,11 +201,31 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
-  async checkChannel(){
+  async checkApp() {
+    await this.connect();
+    this.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (err, res) => {
+      if (res && res.appId) {
+        const newApp = res.appId;
+        const oldApp = this.getStoreValue('app');
+        if (newApp && oldApp !== newApp) {
+          this.setStoreValue('app', newApp);
+          this._driver.triggerAppChanged(this, {
+            oldApp,
+            newApp
+          }, {});
+        }
+      }
+
+      console.log('res', res);
+
+    });
+  }
+
+  async checkChannel() {
     await this.connect();
     this.lgtv.subscribe('ssap://tv/getCurrentChannel', (err, res) => {
-      if (res && res.channelNumber){
-        const newChannel = result.channelNumber;
+      if (res && res.channelNumber) {
+        const newChannel = res.channelNumber;
         const oldChannel = this.getStoreValue('channel');
         if (newChannel && oldChannel !== newChannel) {
           this.setStoreValue('channel', newChannel);
@@ -324,7 +344,7 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   getChannelList(query = '') {
-    function _filter(list, query){
+    function _filter(list, query) {
       let tmp = list.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
       return tmp.sort((a, b) => {
         const numA = parseInt(a.number);
@@ -440,7 +460,7 @@ class WebosPlusDevice extends Homey.Device {
     return this.getCapabilityValue(name);
   }
 
-  getCurrentSoundOutput(){
+  getCurrentSoundOutput() {
     return new Promise(async (resolve, reject) => {
       await this.connect();
       this.lgtv.request(`ssap://com.webos.service.apiadapter/audio/getSoundOutput`, (err, res) => {
