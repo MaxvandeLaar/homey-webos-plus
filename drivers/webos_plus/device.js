@@ -91,9 +91,7 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   async checkVolume() {
-    if (!this.connected || !this.lgtv) {
-      await this.connect();
-    }
+    await this.connect();
     this.lgtv.subscribe('ssap://audio/getVolume', (err, res) => {
       if (!res) {
         return;
@@ -152,6 +150,7 @@ class WebosPlusDevice extends Homey.Device {
         this.log('connected');
         this.checkVolume();
         this.checkChannel();
+        this.checkApp();
         resolve(true);
       });
     });
