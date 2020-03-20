@@ -20,6 +20,7 @@ class WebosPlusDriver extends Homey.Driver {
   initTriggers() {
     this._triggerChannelChanged = new Homey.FlowCardTriggerDevice('webos_channel_changed').register();
     this._triggerAppChanged = new Homey.FlowCardTriggerDevice('webos_app_changed').register();
+    this._triggerSoundOutputChanged = new Homey.FlowCardTriggerDevice('webos_sound_output_changed').register();
   }
 
   triggerChannelChanged( device, tokens, state ) {
@@ -31,6 +32,13 @@ class WebosPlusDriver extends Homey.Driver {
 
   triggerAppChanged( device, tokens, state ) {
     this._triggerAppChanged
+      .trigger( device, tokens, state )
+      .then( this.log )
+      .catch( this.error );
+  }
+
+  triggerSoundOutputChanged( device, tokens, state ) {
+    this._triggerSoundOutputChanged
       .trigger( device, tokens, state )
       .then( this.log )
       .catch( this.error );

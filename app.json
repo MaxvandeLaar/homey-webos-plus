@@ -144,6 +144,40 @@
             "example": "com.webos.app.hdmi3"
           }
         ]
+      },
+      {
+        "id": "webos_sound_output_changed",
+        "title": {
+          "en": "Sound output changed",
+          "nl": "geluidsuitgang veranderd"
+        },
+        "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldSoundOutput",
+            "type": "string",
+            "title": {
+              "en": "Previous sound output",
+              "nl": "Vorige geluidsuitgang"
+            },
+            "example": "tv_speaker"
+          },
+          {
+            "name": "newSoundOutput",
+            "type": "string",
+            "title": {
+              "en": "Current sound output",
+              "nl": "Huidige geluidsuitgang"
+            },
+            "example": "headphone"
+          }
+        ]
       }
     ],
     "conditions": [

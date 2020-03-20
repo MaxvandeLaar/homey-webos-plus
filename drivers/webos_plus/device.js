@@ -151,6 +151,7 @@ class WebosPlusDevice extends Homey.Device {
         this.checkVolume();
         this.checkChannel();
         this.checkApp();
+        this.checkSoundOutput();
         resolve(true);
       });
     });
@@ -214,9 +215,23 @@ class WebosPlusDevice extends Homey.Device {
           }, {});
         }
       }
+    });
+  }
 
-      console.log('res', res);
-
+  async checkSoundOutput() {
+    await this.connect();
+    this.lgtv.subscribe('ssap://com.webos.service.apiadapter/audio/getSoundOutput', (err, res) => {
+      if (res && res.soundOutput) {
+        const newSoundOutput = res.soundOutput;
+        const oldSoundOutput = this.getStoreValue('soundOutput');
+        if (newSoundOutput && oldSoundOutput !== newSoundOutput) {
+          this.setStoreValue('soundOutput', newSoundOutput);
+          this._driver.triggerSoundOutputChanged(this, {
+            oldSoundOutput,
+            newSoundOutput
+          }, {});
+        }
+      }
     });
   }
 
