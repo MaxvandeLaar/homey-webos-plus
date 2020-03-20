@@ -1,4 +1,7 @@
 {
+  "1.2.0": {
+    "en": "Toast message support image token\nAdded triggers for channel/App or input/sound output change"
+  },
   "1.0.1": {
     "en": "Toast message variables for the icon no longer required.\nRemoved icon extension variable as 'tiff' works for most image types.\nAccept urls as icon for toast messages"
   },
