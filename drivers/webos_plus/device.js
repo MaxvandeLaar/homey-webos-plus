@@ -34,8 +34,9 @@ class WebosPlusDevice extends Homey.Device {
     return discoveryResult.id === this.getData().id;
   }
 
-  onDiscoveryAvailable(discoveryResult) {
-    this.connect();
+  async onDiscoveryAvailable(discoveryResult) {
+    await this.connect();
+    return true;
   }
 
   onDiscoveryAddressChanged(discoveryResult) {
@@ -47,6 +48,7 @@ class WebosPlusDevice extends Homey.Device {
 
   onDiscoveryLastSeenChanged(discoveryResult) {
     // When the device is offline, try to reconnect here
+    this.connect();
   }
 
   registerListeners() {
