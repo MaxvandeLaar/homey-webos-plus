@@ -110,6 +110,40 @@
             "example": 2
           }
         ]
+      },
+      {
+        "id": "webos_app_changed",
+        "title": {
+          "en": "App or input changed",
+          "nl": "App or input veranderd"
+        },
+        "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldApp",
+            "type": "string",
+            "title": {
+              "en": "Previous app or input",
+              "nl": "Vorige app of input"
+            },
+            "example": "com.webos.app.livetv"
+          },
+          {
+            "name": "newApp",
+            "type": "string",
+            "title": {
+              "en": "Current app or input",
+              "nl": "Huidige app of input"
+            },
+            "example": "com.webos.app.hdmi3"
+          }
+        ]
       }
     ],
     "conditions": [
