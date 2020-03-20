@@ -23,25 +23,25 @@ class WebosPlusDriver extends Homey.Driver {
     this._triggerSoundOutputChanged = new Homey.FlowCardTriggerDevice('webos_sound_output_changed').register();
   }
 
-  triggerChannelChanged( device, tokens, state ) {
+  triggerChannelChanged(device, tokens, state) {
     this._triggerChannelChanged
-      .trigger( device, tokens, state )
-      .then( this.log )
-      .catch( this.error );
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
   }
 
-  triggerAppChanged( device, tokens, state ) {
+  triggerAppChanged(device, tokens, state) {
     this._triggerAppChanged
-      .trigger( device, tokens, state )
-      .then( this.log )
-      .catch( this.error );
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
   }
 
-  triggerSoundOutputChanged( device, tokens, state ) {
+  triggerSoundOutputChanged(device, tokens, state) {
     this._triggerSoundOutputChanged
-      .trigger( device, tokens, state )
-      .then( this.log )
-      .catch( this.error );
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
   }
 
   initConditions() {
@@ -74,6 +74,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSimulateButton();
     this._actionSendToast = new Homey.FlowCardAction('send_toast');
     this.actionSendToast();
+    this._actionSendToastWithImage = new Homey.FlowCardAction('send_toast_with_image');
+    this.actionSendToastWithImage();
     this._actionChangeSoundOutput = new Homey.FlowCardAction('change_sound_output');
     this.actionChangeSoundOutput();
   }
@@ -214,6 +216,43 @@ class WebosPlusDriver extends Homey.Driver {
         });
       })
       .register();
+  }
+
+  actionSendToastWithImage() {
+    this._actionSendToastWithImage
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        const {message, droptoken} = args;
+        let icon = '';
+        return new Promise(async (resolve, reject) => {
+          if (droptoken) {
+            const imageStream = await droptoken.getStream();
+            icon = await new Promise((resolve) => {
+              imageStream.setEncoding('binary');
+              const type = imageStream.contentType;
+              const prefix = `data:${type};base64,`;
+              let body = '';
+
+              imageStream.on('data', (chunk) => {
+                body += chunk;
+              });
+
+              imageStream.on('end', () => {
+                const base64 = Buffer.from(body, 'binary').toString('base64');
+                const data = prefix + base64;
+                return resolve(data);
+              });
+            });
+          }
+
+          device.sendToast(message, icon).then(() => {
+            resolve(true);
+          }, () => {
+            resolve(true)
+          });
+        });
+      })
+      .register()
   }
 
   actionSendToast() {
