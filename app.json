@@ -439,6 +439,29 @@
         ]
       },
       {
+        "id": "send_toast_with_image",
+        "title": {
+          "en": "Send a toast message with Gallery image",
+          "nl": "Stuur een toast bericht met Gallerij afbeelding"
+        },
+        "droptoken": "image",
+        "args": [
+          {
+            "name": "message",
+            "type": "text",
+            "placeholder": {
+              "en": "Alert text",
+              "nl": "Melding tekst"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
         "id": "change_sound_output",
         "title": {
           "en": "Change the sound output",
