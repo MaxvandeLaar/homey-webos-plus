@@ -92,7 +92,7 @@ class WebosPlusDevice extends Homey.Device {
 
   async checkVolume() {
     if (!this.connected || !this.lgtv) {
-      return;
+      await this.connect();
     }
     this.lgtv.subscribe('ssap://audio/getVolume', (err, res) => {
       if (!res) {
@@ -151,6 +151,7 @@ class WebosPlusDevice extends Homey.Device {
         this.connected = true;
         this.log('connected');
         this.checkVolume();
+        this.checkChannel();
         resolve(true);
       });
     });
@@ -200,6 +201,23 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
+  async checkChannel(){
+    await this.connect();
+    this.lgtv.subscribe('ssap://tv/getCurrentChannel', (err, res) => {
+      if (res && res.channelNumber){
+        const newChannel = result.channelNumber;
+        const oldChannel = this.getStoreValue('channel');
+        if (newChannel && oldChannel !== newChannel) {
+          this.setStoreValue('channel', newChannel);
+          this._driver.triggerChannelChanged(this, {
+            oldChannel,
+            newChannel
+          }, {});
+        }
+      }
+    });
+  }
+
   async setVolumeUpDown(up) {
     await this.connect();
     const action = up ? 'volumeUp' : 'volumeDown';
@@ -227,7 +245,7 @@ class WebosPlusDevice extends Homey.Device {
     await this.connect();
     this.lgtv.request(`ssap://tv/${action}`, (err, res) => {
       if (err) {
-        this.error(err);
+        return this.error(err);
       }
     });
   }
@@ -267,15 +285,7 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   getCurrentChannel() {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.request('ssap://tv/getCurrentChannel', (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(res);
-      })
-    });
+    return this.getStoreValue('channel');
   }
 
   getAppList(query = '') {

@@ -76,7 +76,42 @@
     }
   },
   "flow": {
-    "triggers": [],
+    "triggers": [
+      {
+        "id": "webos_channel_changed",
+        "title": {
+          "en": "Channel changed",
+          "nl": "Kanaal veranderd"
+        },
+        "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldChannel",
+            "type": "string",
+            "title": {
+              "en": "Previous channel",
+              "nl": "Vorige kanaal"
+            },
+            "example": 1
+          },
+          {
+            "name": "newChannel",
+            "type": "string",
+            "title": {
+              "en": "Current channel",
+              "nl": "Huidige kanaal"
+            },
+            "example": 2
+          }
+        ]
+      }
+    ],
     "conditions": [
       {
         "id": "webos_sound_output",
