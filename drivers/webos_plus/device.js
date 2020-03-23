@@ -235,10 +235,14 @@ class WebosPlusDevice extends Homey.Device {
         const oldSoundOutput = this.getStoreValue('soundOutput');
         if (newSoundOutput && oldSoundOutput !== newSoundOutput) {
           this.setStoreValue('soundOutput', newSoundOutput);
+          this.log('Sound change', oldSoundOutput, newSoundOutput);
           this._driver.triggerSoundOutputChanged(this, {
             oldSoundOutput,
             newSoundOutput
-          }, {});
+          }, {
+            oldSoundOutput,
+            newSoundOutput
+          });
         }
       }
     });
@@ -255,7 +259,10 @@ class WebosPlusDevice extends Homey.Device {
           this._driver.triggerChannelChanged(this, {
             oldChannel,
             newChannel
-          }, {});
+          }, {
+            oldChannel,
+            newChannel
+          });
         }
       }
     });
