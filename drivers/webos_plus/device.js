@@ -34,16 +34,22 @@ class WebosPlusDevice extends Homey.Device {
     return discoveryResult.id === this.getData().id;
   }
 
-  async onDiscoveryAvailable(discoveryResult) {
-    await this.connect();
+  onDiscoveryAvailable(discoveryResult) {
+    this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+      this.settings = this.getSettings();
+      this.connect(true);
+      this.poll();
+    }).catch(this.error);
     return true;
   }
 
   onDiscoveryAddressChanged(discoveryResult) {
     this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+      this.settings = this.getSettings();
       this.connect(true);
       this.poll();
-    });
+    }).catch(this.error);
+    return true;
   }
 
   onDiscoveryLastSeenChanged(discoveryResult) {
