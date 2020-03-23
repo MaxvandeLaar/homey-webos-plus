@@ -19,6 +19,26 @@ class WebosPlusDriver extends Homey.Driver {
 
   initTriggers() {
     this._triggerChannelChanged = new Homey.FlowCardTriggerDevice('webos_channel_changed').register();
+    this._triggerChannelChangedToList = new Homey.FlowCardTriggerDevice('webos_channel_changed_to_list')
+      .registerRunListener(( args, state ) => {
+        return Promise.resolve( args.channel.number && `${args.channel.number}` === `${state.newChannel}` );
+      })
+      .register();
+    this._triggerChannelChangedToNumber = new Homey.FlowCardTriggerDevice('webos_channel_changed_to_number')
+      .registerRunListener(( args, state ) => {
+        return Promise.resolve( args.channel && `${args.channel}` === `${state.newChannel}` );
+      })
+      .register();
+    this._triggerChannelChangedToList
+      .getArgument('channel')
+      .registerAutocompleteListener((query, args) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
+          const channels = await device.getChannelList(query);
+          resolve(channels);
+        });
+      });
+
     this._triggerAppChanged = new Homey.FlowCardTriggerDevice('webos_app_changed').register();
     this._triggerAppChangedTo = new Homey.FlowCardTriggerDevice('webos_app_changed_to')
       .registerRunListener(( args, state ) => {
@@ -35,10 +55,23 @@ class WebosPlusDriver extends Homey.Driver {
         });
       });
     this._triggerSoundOutputChanged = new Homey.FlowCardTriggerDevice('webos_sound_output_changed').register();
+    this._triggerSoundOutputChangedTo = new Homey.FlowCardTriggerDevice('webos_sound_output_changed_to')
+      .registerRunListener(( args, state ) => {
+        return Promise.resolve( args.output === state.newSoundOutput );
+      })
+      .register();
   }
 
   triggerChannelChanged(device, tokens, state) {
     this._triggerChannelChanged
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
+    this._triggerChannelChangedToList
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
+    this._triggerChannelChangedToNumber
       .trigger(device, tokens, state)
       .then(this.log)
       .catch(this.error);
@@ -57,6 +90,10 @@ class WebosPlusDriver extends Homey.Driver {
 
   triggerSoundOutputChanged(device, tokens, state) {
     this._triggerSoundOutputChanged
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
+    this._triggerSoundOutputChangedTo
       .trigger(device, tokens, state)
       .then(this.log)
       .catch(this.error);

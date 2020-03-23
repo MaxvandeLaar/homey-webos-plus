@@ -112,6 +112,88 @@
         ]
       },
       {
+        "id": "webos_channel_changed_to_number",
+        "title": {
+          "en": "Channel changed to (number)",
+          "nl": "Kanaal veranderd naar (nummer)"
+        },
+        "args": [
+          {
+            "name": "channel",
+            "type": "number",
+            "min": 0,
+            "step": 1
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldChannel",
+            "type": "string",
+            "title": {
+              "en": "Previous channel",
+              "nl": "Vorige kanaal"
+            },
+            "example": 1
+          },
+          {
+            "name": "newChannel",
+            "type": "string",
+            "title": {
+              "en": "Current channel",
+              "nl": "Huidige kanaal"
+            },
+            "example": 2
+          }
+        ]
+      },
+      {
+        "id": "webos_channel_changed_to_list",
+        "title": {
+          "en": "Channel changed naar (lijst)",
+          "nl": "Kanaal veranderd naar (lijst)"
+        },
+        "args": [
+          {
+            "name": "channel",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldChannel",
+            "type": "string",
+            "title": {
+              "en": "Previous channel",
+              "nl": "Vorige kanaal"
+            },
+            "example": 1
+          },
+          {
+            "name": "newChannel",
+            "type": "string",
+            "title": {
+              "en": "Current channel",
+              "nl": "Huidige kanaal"
+            },
+            "example": 2
+          }
+        ]
+      },
+      {
         "id": "webos_app_changed",
         "title": {
           "en": "App or input changed",
@@ -194,6 +276,113 @@
           "nl": "geluidsuitgang veranderd"
         },
         "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldSoundOutput",
+            "type": "string",
+            "title": {
+              "en": "Previous sound output",
+              "nl": "Vorige geluidsuitgang"
+            },
+            "example": "tv_speaker"
+          },
+          {
+            "name": "newSoundOutput",
+            "type": "string",
+            "title": {
+              "en": "Current sound output",
+              "nl": "Huidige geluidsuitgang"
+            },
+            "example": "headphone"
+          }
+        ]
+      },
+      {
+        "id": "webos_sound_output_changed_to",
+        "title": {
+          "en": "Sound output changed to",
+          "nl": "geluidsuitgang veranderd naar"
+        },
+        "args": [
+          {
+            "name": "output",
+            "type": "dropdown",
+            "placeholder": {
+              "en": "Select an output",
+              "nl": "Selecteer een uitgang"
+            },
+            "values": [
+              {
+                "id": "tv_speaker",
+                "label": {
+                  "en": "TV speaker",
+                  "nl": "TV speaker"
+                }
+              },
+              {
+                "id": "external_speaker",
+                "label": {
+                  "en": "External speaker",
+                  "nl": "Externe speaker"
+                }
+              },
+              {
+                "id": "external_optical",
+                "label": {
+                  "en": "External optical",
+                  "nl": "Externe optische"
+                }
+              },
+              {
+                "id": "external_arc",
+                "label": {
+                  "en": "External ARC",
+                  "nl": "Externe ARC"
+                }
+              },
+              {
+                "id": "lineout",
+                "label": {
+                  "en": "Line out",
+                  "nl": "Line out"
+                }
+              },
+              {
+                "id": "headphone",
+                "label": {
+                  "en": "Headphone",
+                  "nl": "Koptelefoon"
+                }
+              },
+              {
+                "id": "tv_external_speaker",
+                "label": {
+                  "en": "TV external speaker",
+                  "nl": "TV externe speaker"
+                }
+              },
+              {
+                "id": "tv_speaker_headphone",
+                "label": {
+                  "en": "TV speaker headphone",
+                  "nl": "TV speaker koptelefoon"
+                }
+              },
+              {
+                "id": "bt_soundbar",
+                "label": {
+                  "en": "Bluetooth soundbar",
+                  "nl": "Bluetooth soundbar"
+                }
+              }
+            ]
+          },
           {
             "name": "webosDevice",
             "type": "device",
