@@ -218,7 +218,10 @@ class WebosPlusDevice extends Homey.Device {
           this._driver.triggerAppChanged(this, {
             oldApp,
             newApp
-          }, {});
+          }, {
+            oldApp,
+            newApp
+          });
         }
       }
     });

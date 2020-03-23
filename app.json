@@ -146,6 +146,48 @@
         ]
       },
       {
+        "id": "webos_app_changed_to",
+        "title": {
+          "en": "App or input changed to",
+          "nl": "App or input veranderd naar"
+        },
+        "args": [
+          {
+            "name": "app",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ],
+        "tokens": [
+          {
+            "name": "oldApp",
+            "type": "string",
+            "title": {
+              "en": "Previous app or input",
+              "nl": "Vorige app of input"
+            },
+            "example": "com.webos.app.livetv"
+          },
+          {
+            "name": "newApp",
+            "type": "string",
+            "title": {
+              "en": "Current app or input",
+              "nl": "Huidige app of input"
+            },
+            "example": "com.webos.app.hdmi3"
+          }
+        ]
+      },
+      {
         "id": "webos_sound_output_changed",
         "title": {
           "en": "Sound output changed",

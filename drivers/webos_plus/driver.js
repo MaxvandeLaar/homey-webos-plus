@@ -20,6 +20,20 @@ class WebosPlusDriver extends Homey.Driver {
   initTriggers() {
     this._triggerChannelChanged = new Homey.FlowCardTriggerDevice('webos_channel_changed').register();
     this._triggerAppChanged = new Homey.FlowCardTriggerDevice('webos_app_changed').register();
+    this._triggerAppChangedTo = new Homey.FlowCardTriggerDevice('webos_app_changed_to')
+      .registerRunListener(( args, state ) => {
+        return Promise.resolve( args.app && args.app.id === state.newApp );
+      })
+      .register();
+    this._triggerAppChangedTo
+      .getArgument('app')
+      .registerAutocompleteListener((query, args) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
+          const apps = await device.getAppList(query);
+          resolve(apps);
+        });
+      });
     this._triggerSoundOutputChanged = new Homey.FlowCardTriggerDevice('webos_sound_output_changed').register();
   }
 
@@ -32,6 +46,10 @@ class WebosPlusDriver extends Homey.Driver {
 
   triggerAppChanged(device, tokens, state) {
     this._triggerAppChanged
+      .trigger(device, tokens, state)
+      .then(this.log)
+      .catch(this.error);
+    this._triggerAppChangedTo
       .trigger(device, tokens, state)
       .then(this.log)
       .catch(this.error);
