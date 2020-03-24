@@ -65,37 +65,30 @@ class WebosPlusDriver extends Homey.Driver {
   triggerChannelChanged(device, tokens, state) {
     this._triggerChannelChanged
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
     this._triggerChannelChangedToList
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
     this._triggerChannelChangedToNumber
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
   }
 
   triggerAppChanged(device, tokens, state) {
     this._triggerAppChanged
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
     this._triggerAppChangedTo
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
   }
 
   triggerSoundOutputChanged(device, tokens, state) {
     this._triggerSoundOutputChanged
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
     this._triggerSoundOutputChangedTo
       .trigger(device, tokens, state)
-      .then(this.log)
       .catch(this.error);
   }
 

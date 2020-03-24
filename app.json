@@ -1184,7 +1184,10 @@
         "channel_up",
         "volume_down",
         "volume_up",
-        "volume_mute"
+        "volume_mute",
+        "speaker_playing",
+        "speaker_prev",
+        "speaker_next"
       ],
       "capabilitiesOptions": {
         "onoff": {

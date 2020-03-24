@@ -12,6 +12,7 @@
   "license": "GNU",
   "dependencies": {
     "mac-regex": "^1.0.0",
+    "node-fetch": "^2.6.0",
     "node-wol": "^0.1.1",
     "websocket": "^1.0.30"
   }

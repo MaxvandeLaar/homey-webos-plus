@@ -4,9 +4,18 @@ const Homey = require('homey');
 const wol = require('node-wol');
 const {ManagerArp} = require('homey');
 const mac = require('mac-regex');
+const fetch = require('node-fetch');
 
 class WebosPlusDevice extends Homey.Device {
   onInit() {
+    this.image = new Homey.Image();
+    this.image.setUrl(null);
+    this.image.register()
+      .then(() => {
+        return this.setAlbumArtImage( this.image );
+      })
+      .catch(this.error);
+
     this.settings = this.getSettings();
     this.connected = false;
     this.latestOnOffChange = Date.now();
@@ -40,7 +49,7 @@ class WebosPlusDevice extends Homey.Device {
       this.connect(true);
       this.poll();
     }).catch(this.error);
-    return true;
+    return Promise.resolve(true);
   }
 
   onDiscoveryAddressChanged(discoveryResult) {
@@ -49,15 +58,36 @@ class WebosPlusDevice extends Homey.Device {
       this.connect(true);
       this.poll();
     }).catch(this.error);
-    return true;
+    return Promise.resolve(true);
   }
 
   onDiscoveryLastSeenChanged(discoveryResult) {
     // When the device is offline, try to reconnect here
     this.connect();
+    return Promise.resolve(true);
   }
 
-  registerListeners() {
+  async registerListeners() {
+    if(!this.hasCapability("speaker_artist")) {
+      await this.addCapability("speaker_artist");
+    }
+
+    if(!this.hasCapability("speaker_track")) {
+      await this.addCapability("speaker_track");
+    }
+
+    if(!this.hasCapability("speaker_album")) {
+      await this.addCapability("speaker_album");
+    }
+
+    if(!this.hasCapability("speaker_next")) {
+      await this.addCapability("speaker_next");
+    }
+
+    if(!this.hasCapability("speaker_prev")) {
+      await this.addCapability("speaker_prev");
+    }
+
     this.registerCapabilityListener('onoff', this.toggleOnOff.bind(this));
     this.registerCapabilityListener('volume_set', this.setVolume.bind(this));
     this.registerCapabilityListener('volume_mute', this.muteVolume.bind(this));
@@ -65,6 +95,9 @@ class WebosPlusDevice extends Homey.Device {
     this.registerCapabilityListener('volume_down', this.setVolumeUpDown.bind(this, false));
     this.registerCapabilityListener('channel_up', this.setChannelUpDown.bind(this, 'channelUp'));
     this.registerCapabilityListener('channel_down', this.setChannelUpDown.bind(this, 'channelDown'));
+    this.registerCapabilityListener('speaker_playing', this.togglePlayPause.bind(this));
+    this.registerCapabilityListener('speaker_next', this.fastForward.bind(this));
+    this.registerCapabilityListener('speaker_prev', this.rewind.bind(this));
   }
 
   onSettings(oldSettings, newSettings, changedKeys) {
@@ -207,10 +240,63 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
+  async togglePlayPause(value){
+    const action = value ? 'play' : 'pause';
+    await this.connect();
+    this.lgtv.request(`ssap://media.controls/${action}`, (err, res) => {
+      if (err) {
+        return this.error(err);
+      }
+    });
+  }
+
+  async fastForward() {
+    await this.connect();
+    this.lgtv.request('ssap://media.controls/fastForward', (err, res) => {
+      if (err) {
+        return this.error(err);
+      }
+    })
+  }
+
+  async rewind() {
+    await this.connect();
+    this.lgtv.request('ssap://media.controls/rewind', (err, res) => {
+      if (err) {
+        return this.error(err);
+      }
+    })
+  }
+
   async checkApp() {
     await this.connect();
     this.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (err, res) => {
       if (res && res.appId) {
+        this.getAppList().then(async (apps) => {
+          const list = apps.filter(app => app.id === res.appId);
+          if (list.length && list.length > 0) {
+            const app = list[0];
+            this.setCapabilityValue('speaker_artist', app.name);
+
+            const channel = await this.getCurrentChannel();
+            if (channel.returnValue){
+              this.setCapabilityValue('speaker_track', `${channel.channelNumber} | ${channel.channelName}`);
+            } else {
+              this.setCapabilityValue('speaker_track', '');
+            }
+
+            // this.log('Image', app.image);
+            this.image.setStream(async (stream) => {
+              const appImage = await fetch(app.image);
+
+              if(!appImage.ok)
+                throw new Error('Invalid Response');
+
+              return appImage.body.pipe(stream);
+            });
+            this.image.update();
+          }
+        });
         const newApp = res.appId;
         const oldApp = this.getStoreValue('app');
         if (newApp && oldApp !== newApp) {
@@ -252,6 +338,7 @@ class WebosPlusDevice extends Homey.Device {
     await this.connect();
     this.lgtv.subscribe('ssap://tv/getCurrentChannel', (err, res) => {
       if (res && res.channelNumber) {
+        this.setCapabilityValue('speaker_track', `${res.channelNumber} | ${res.channelName}`);
         const newChannel = res.channelNumber;
         const oldChannel = this.getStoreValue('channel');
         if (newChannel && oldChannel !== newChannel) {
@@ -334,8 +421,16 @@ class WebosPlusDevice extends Homey.Device {
     });
   }
 
-  getCurrentChannel() {
-    return this.getStoreValue('channel');
+  async getCurrentChannel() {
+    await this.connect();
+    return new Promise(async (resolve, reject) => {
+      this.lgtv.request('ssap://tv/getCurrentChannel', (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(res);
+      })
+    });
   }
 
   getAppList(query = '') {
