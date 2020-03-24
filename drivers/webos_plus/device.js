@@ -40,10 +40,12 @@ class WebosPlusDevice extends Homey.Device {
 
   onDiscoveryResult(discoveryResult) {
     discoveryResult.id = discoveryResult.id.replace(/uuid:/g, '');
+    this.setAvailable();
     return discoveryResult.id === this.getData().id;
   }
 
   onDiscoveryAvailable(discoveryResult) {
+    this.setAvailable();
     this.setSettings({ipAddress: discoveryResult.address}).then(() => {
       this.settings = this.getSettings();
       this.connect(true);
@@ -53,6 +55,7 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   onDiscoveryAddressChanged(discoveryResult) {
+    this.setAvailable();
     this.setSettings({ipAddress: discoveryResult.address}).then(() => {
       this.settings = this.getSettings();
       this.connect(true);
@@ -63,6 +66,7 @@ class WebosPlusDevice extends Homey.Device {
 
   onDiscoveryLastSeenChanged(discoveryResult) {
     // When the device is offline, try to reconnect here
+    this.setAvailable();
     this.connect();
     return Promise.resolve(true);
   }
@@ -153,6 +157,7 @@ class WebosPlusDevice extends Homey.Device {
   }
 
   connect(reconnect = false) {
+    this.setAvailable();
     if (this.lgtv && reconnect) {
       this.connected = false;
       this.lgtv.disconnect();
