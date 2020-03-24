@@ -285,9 +285,8 @@ class WebosPlusDevice extends Homey.Device {
               this.setCapabilityValue('speaker_track', '');
             }
 
-            // this.log('Image', app.image);
             this.image.setStream(async (stream) => {
-              const appImage = await fetch(app.image);
+              const appImage = await fetch(app.imageLarge || app.image);
 
               if(!appImage.ok)
                 throw new Error('Invalid Response');
@@ -454,7 +453,8 @@ class WebosPlusDevice extends Homey.Device {
               return {
                 name: point.title,
                 image: point.icon,
-                id: point.id
+                id: point.id,
+                imageLarge: point.largeIcon
               };
             });
           }
