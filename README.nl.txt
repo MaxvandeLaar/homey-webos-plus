@@ -10,6 +10,7 @@ App capabilities zijn:
 - Verander volume
 - Mute/unmute
 - Verander kanaal
+- Media knoppen
 - Aan/uit over ethernet met WOL
 
 Besides the basic capabilities you can create amazing flows:
@@ -24,7 +25,8 @@ Naast de basis capabilities kan je mooie flows maken:
   - Zet kanaal via lijst selectie
   - Verander input of start app met lijst selectie
   - Simuleer afstandbediening knoppen (e.g. Links, Exit, Menu, Ok)
-  - Toat message incl. optionele icon
+  - Toast message incl. optionele icon
+  - Media knoppen
 
 * Conditions:
   - Aan/uit
@@ -39,3 +41,4 @@ Naast de basis capabilities kan je mooie flows maken:
   - Volume veranderd
   - App/input veranderd
   - Geluidsuitgang veranderd
+  - Media knoppen

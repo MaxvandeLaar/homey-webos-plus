@@ -1,4 +1,7 @@
 {
+  "1.3.0": {
+    "en": "Added conditional arguments in triggers\nAdded media screen"
+  },
   "1.2.1": {
     "en": "Support for dynamic ip-address"
   },

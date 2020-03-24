@@ -10,6 +10,7 @@ App capabilities are:
 - Change volume
 - Mute/unmute
 - Change channel
+- Media controls
 - Power on/off over ethernet with WOL
 
 Besides the basic capabilities you can create amazing flows:
@@ -24,6 +25,7 @@ Besides the basic capabilities you can create amazing flows:
   - Set input source or app via list selection
   - Simulate remote control button (e.g. Left, Exit, Menu, Ok)
   - Toast with optional icon
+  - Media controls
 
 * Conditions:
   - On/Off
@@ -37,4 +39,5 @@ Besides the basic capabilities you can create amazing flows:
   - Channel change
   - Volume change
   - App/input change
-  - Sound ouput change
+  - Sound output change
+  - Media controls
