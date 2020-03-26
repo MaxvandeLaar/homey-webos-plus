@@ -5,477 +5,416 @@ const wol = require('node-wol');
 const {ManagerArp} = require('homey');
 const mac = require('mac-regex');
 const fetch = require('node-fetch');
+const WebOSTV = require('./webos/WebOSTV');
+const {capabilities, store} = require('./webos/utils/constants');
 
-class WebosPlusDevice extends Homey.Device {
+process.on('unhandledRejection', error => {
+  // Will print "unhandledRejection err is not defined"
+  // console.log('unhandledRejection', error);
+  console.log('unhandledRejection', error);
+});
+
+class WebosPlusDevice extends WebOSTV {
   onInit() {
+
+    // Init LGTV
+    this.construct();
+
+    // Initialise media screen image
     this.image = new Homey.Image();
     this.image.setUrl(null);
     this.image.register()
       .then(() => {
-        return this.setAlbumArtImage( this.image );
+        return this.setAlbumArtImage(this.image);
       })
       .catch(this.error);
 
-    this.settings = this.getSettings();
-    this.connected = false;
-    this.latestOnOffChange = Date.now();
-    this.launchPoints = {
-      apps: [],
-      date: new Date()
-    };
-
-    this.channelList = {
-      channels: [],
-      date: new Date()
-    };
-
     this._driver = this.getDriver();
-    this._driver.ready(() => {
-      this.log('Device Ready!');
-      this.connect();
-      this.registerListeners();
-      this.poll();
+    this._driver.ready(async () => {
+      this.log('onInit: Device Ready!');
+      this.initDevice();
+      this._connect();
     });
   }
 
   onDiscoveryResult(discoveryResult) {
-    discoveryResult.id = discoveryResult.id.replace(/uuid:/g, '');
     this.setAvailable();
+    discoveryResult.id = discoveryResult.id.replace(/uuid:/g, '');
     return discoveryResult.id === this.getData().id;
   }
 
   onDiscoveryAvailable(discoveryResult) {
     this.setAvailable();
-    this.setSettings({ipAddress: discoveryResult.address}).then(() => {
-      this.settings = this.getSettings();
-      this.connect(true);
-      this.poll();
-    }).catch(this.error);
+    if (this.getSettings().ipAddress !== discoveryResult.address) {
+      this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+        this._connect();
+      }).catch(this.error);
+    }
     return Promise.resolve(true);
   }
 
   onDiscoveryAddressChanged(discoveryResult) {
     this.setAvailable();
-    this.setSettings({ipAddress: discoveryResult.address}).then(() => {
-      this.settings = this.getSettings();
-      this.connect(true);
-      this.poll();
-    }).catch(this.error);
+    if (this.getSettings().ipAddress !== discoveryResult.address) {
+      this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+        this._connect();
+      }).catch(this.error);
+    }
     return Promise.resolve(true);
   }
 
   onDiscoveryLastSeenChanged(discoveryResult) {
-    // When the device is offline, try to reconnect here
     this.setAvailable();
-    this.connect();
     return Promise.resolve(true);
   }
 
-  async registerListeners() {
-    if(!this.hasCapability("speaker_artist")) {
-      await this.addCapability("speaker_artist");
-    }
-
-    if(!this.hasCapability("speaker_track")) {
-      await this.addCapability("speaker_track");
-    }
-
-    if(!this.hasCapability("speaker_album")) {
-      await this.addCapability("speaker_album");
-    }
-
-    if(!this.hasCapability("speaker_next")) {
-      await this.addCapability("speaker_next");
-    }
-
-    if(!this.hasCapability("speaker_prev")) {
-      await this.addCapability("speaker_prev");
-    }
-
-    this.registerCapabilityListener('onoff', this.toggleOnOff.bind(this));
-    this.registerCapabilityListener('volume_set', this.setVolume.bind(this));
-    this.registerCapabilityListener('volume_mute', this.muteVolume.bind(this));
-    this.registerCapabilityListener('volume_up', this.setVolumeUpDown.bind(this, true));
-    this.registerCapabilityListener('volume_down', this.setVolumeUpDown.bind(this, false));
-    this.registerCapabilityListener('channel_up', this.setChannelUpDown.bind(this, 'channelUp'));
-    this.registerCapabilityListener('channel_down', this.setChannelUpDown.bind(this, 'channelDown'));
-    this.registerCapabilityListener('speaker_playing', this.togglePlayPause.bind(this));
-    this.registerCapabilityListener('speaker_next', this.fastForward.bind(this));
-    this.registerCapabilityListener('speaker_prev', this.rewind.bind(this));
-  }
-
-  onSettings(oldSettings, newSettings, changedKeys) {
-    this.settings = newSettings;
-    this.poll();
-    return Promise.resolve(true);
-  }
-
-  poll() {
-    if (this.checkStateInterval) {
-      clearInterval(this.checkStateInterval);
-    }
-    this.checkStateInterval = setInterval(() => {
-      this.checkOnOff();
-    }, this.settings.pollInterval * 1000);
-  }
-
-  checkOnOff() {
-    const ipAddress = this.settings.ipAddress;
-    ManagerArp.getMAC(ipAddress).then((result => {
-      const validMac = mac({exact: true}).test(result);
-      if (!validMac) {
-        this.handleOff();
-      } else {
-        this.handleOn();
-      }
-    })).catch(error => {
-      this.handleOff();
+  /**
+   * Initialise the WebOS Tv
+   * @returns {Promise<void>}
+   */
+  async initDevice() {
+    await this.registerCapabilities().catch(this.error);
+    this.lgtv.on('connect', () => {
+      this.setCapabilityValue(capabilities.onOff, true);
+      this.powerStateListener();
+      this.volumeListener();
+      this.appListener();
+      this.soundOutputListener();
+      this.channelListener();
+    });
+    this.lgtv.on('close', () => {
+      this.setCapabilityValue(capabilities.onOff, false);
     });
   }
 
-  async checkVolume() {
-    await this.connect();
-    this.lgtv.subscribe('ssap://audio/getVolume', (err, res) => {
-      if (!res) {
+  /**
+   * Register all capabilities
+   *
+   * @returns {Promise<void>}
+   */
+  async registerCapabilities() {
+    // Used for displaying the current app/input
+    if (!this.hasCapability(capabilities.speakerArtist)) {
+      await this.addCapability(capabilities.speakerArtist);
+    }
+
+    // Used for displaying the current channel
+    if (!this.hasCapability(capabilities.speakerTrack)) {
+      await this.addCapability(capabilities.speakerTrack);
+    }
+
+    // Used for displaying the app/input icon
+    if (!this.hasCapability(capabilities.speakerAlbum)) {
+      await this.addCapability(capabilities.speakerAlbum);
+    }
+
+    if (!this.hasCapability(capabilities.speakerPlaying)) {
+      await this.addCapability(capabilities.speakerPlaying);
+    }
+
+    if (!this.hasCapability(capabilities.speakerNext)) {
+      await this.addCapability(capabilities.speakerNext);
+    }
+
+    if (!this.hasCapability(capabilities.speakerPrev)) {
+      await this.addCapability(capabilities.speakerPrev);
+    }
+
+    this.registerCapabilityListener(capabilities.onOff, this.toggleOnOff.bind(this));
+    this.registerCapabilityListener(capabilities.volumeSet, this.volumeSet.bind(this));
+    this.registerCapabilityListener(capabilities.volumeMute, this.volumeMute.bind(this));
+    this.registerCapabilityListener(capabilities.volumeUp, this.volumeUp.bind(this));
+    this.registerCapabilityListener(capabilities.volumeDown, this.volumeDown.bind(this));
+    this.registerCapabilityListener(capabilities.channelUp, this._channelUp.bind(this));
+    this.registerCapabilityListener(capabilities.channelDown, this._channelDown.bind(this));
+    this.registerCapabilityListener(capabilities.speakerPlaying, this._mediaTogglePlayPause.bind(this));
+    this.registerCapabilityListener(capabilities.speakerNext, this._mediaNext.bind(this));
+    this.registerCapabilityListener(capabilities.speakerPrev, this._mediaPrev.bind(this));
+  }
+
+  /**
+   * Listen for changes in on/off state
+   */
+  powerStateListener() {
+    this.log(`powerStateListener: Called`);
+    this._powerStateListener(() => {
+      this.log(`powerStateListener: received on`);
+      this.setCapabilityValue(capabilities.onOff, true);
+    }, () => {
+      this.log(`powerStateListener: received off`);
+      this.setCapabilityValue(capabilities.onOff, false);
+    });
+  }
+
+  /**
+   * Listen for changes in volume
+   */
+  volumeListener() {
+    this.log(`volumeListener: Called`);
+    this._volumeListener((newVolume) => {
+      const currentVolume = this.getCapabilityValue(capabilities.volumeSet);
+      this.log(`volumeListener: Volume changed from ${currentVolume} to ${newVolume}`);
+      if (currentVolume !== newVolume) {
+        this.log(`volumeListener: Capability ${capabilities.volumeSet} to ${newVolume}`);
+        this.setCapabilityValue(capabilities.volumeSet, newVolume);
+      }
+    }, (newMutedValue) => {
+      const currentMute = this.getCapabilityValue(capabilities.volumeMute);
+      this.log(`volumeListener: Mute changed from ${currentMute} to ${newMutedValue}`);
+      if (currentMute !== newMutedValue) {
+        this.log(`volumeListener: Capability ${capabilities.volumeMute} to ${newMutedValue}`);
+        this.setCapabilityValue(capabilities.volumeMute, newMutedValue)
+          .catch(this.error);
+      }
+    });
+  }
+
+  /**
+   * Listen for changes in app/input
+   */
+  appListener() {
+    this.log(`appListener: Called`);
+    this._appListener(async (newAppId) => {
+      const oldAppId = this.getStoreValue(store.currentApp);
+      this.log(`appListener: App/input changed from ${oldAppId} to ${newAppId}`);
+      if (newAppId !== oldAppId) {
+        this.log(`appListener: Store ${store.currentApp} set to ${newAppId}`);
+        this.setStoreValue(store.currentApp, newAppId);
+
+        this.log(`appListener: Flow trigger app/input changed`);
+        this._driver.triggerAppChanged(this, {
+          oldApp: oldAppId,
+          newApp: newAppId
+        }, {
+          oldApp: oldAppId,
+          newApp: newAppId
+        });
+      }
+
+      this.log(`appListener: Gather media screen information for ${newAppId}`);
+      const allApps = await this._appList().catch(this.error);
+      if (!allApps) {
+        this.error('appListener: No Apps/inputs found');
         return;
       }
-      if (res.changed && res.changed.indexOf('volume') !== -1) {
-        const currentVolume = this.getCapabilityValue('volume_set');
-        if (currentVolume !== res.volume) {
-          this.setCapabilityValue('volume_set', res.volume)
-            .catch(this.error);
-        }
+      const app = allApps.find(app => app.id === newAppId);
+      if (!app) {
+        this.error(`appListener: No app found for ${newAppId}`);
+        return;
       }
-      if (res.changed && res.changed.indexOf('muted') !== -1) {
-        const currentMute = this.getCapabilityValue('volume_mute');
-        if (currentMute !== res.muted) {
-          this.setCapabilityValue('volume_mute', res.muted)
-            .catch(this.error);
-        }
-      }
-    });
-  }
 
-  connect(reconnect = false) {
-    this.setAvailable();
-    if (this.lgtv && reconnect) {
-      this.connected = false;
-      this.lgtv.disconnect();
-    }
+      this.log(`appListener: App found for '${newAppId}' ${app.name}`);
+      this.setCapabilityValue(capabilities.speakerArtist, app.name);
 
-    if (this.lgtv && this.connected) {
-      return;
-    }
-    this.log(`Connect to TV ${this.settings.ipAddress}`);
-
-    this.lgtv = require('./lgtv2/lgtv2')({
-      url: `ws://${this.settings.ipAddress}:3000`,
-      reconnect: 5000
-    });
-
-    this.lgtv.on('prompt', () => {
-      this.log('please authorize on TV');
-    });
-
-    this.lgtv.on('close', () => {
-      this.log('Disconnected');
-      this.connected = false;
-      this.lgtv = null;
-    });
-
-    return new Promise((resolve, reject) => {
-      this.lgtv.on('error', (err) => {
-        this.error(err);
-        resolve(true);
-      });
-
-      this.lgtv.on('connect', () => {
-        this.connected = true;
-        this.log('connected');
-        this.checkVolume();
-        this.checkChannel();
-        this.checkApp();
-        this.checkSoundOutput();
-        resolve(true);
-      });
-    });
-  }
-
-  async simulateButton(button) {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.getSocket(
-        'ssap://com.webos.service.networkinput/getPointerInputSocket',
-        async (err, sock) => {
-          if (err) {
-            this.error(err);
-            reject(err);
-          }
-          if (!err) {
-            sock.send('button', {name: button.toUpperCase()});
-            sock.close();
-            resolve(true);
-          }
-        }
-      );
-    });
-  }
-
-  async launchApp(id) {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.request('ssap://com.webos.applicationManager/launch', {id}, (err, res) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(res);
-        }
-      });
-    });
-  }
-
-  async setVolume(value) {
-    await this.connect();
-    const currentValue = this.getCapabilityValue('volume_set');
-    this.lgtv.request('ssap://audio/setVolume', {volume: value}, (err, res) => {
-      if (value !== currentValue) {
-        this.setCapabilityValue('volume_set', value)
-          .catch(this.error);
-      }
-    });
-  }
-
-  async togglePlayPause(value){
-    const action = value ? 'play' : 'pause';
-    await this.connect();
-    this.lgtv.request(`ssap://media.controls/${action}`, (err, res) => {
-      if (err) {
-        return this.error(err);
-      }
-    });
-  }
-
-  async fastForward() {
-    await this.connect();
-    this.lgtv.request('ssap://media.controls/fastForward', (err, res) => {
-      if (err) {
-        return this.error(err);
-      }
-    })
-  }
-
-  async rewind() {
-    await this.connect();
-    this.lgtv.request('ssap://media.controls/rewind', (err, res) => {
-      if (err) {
-        return this.error(err);
-      }
-    })
-  }
-
-  async checkApp() {
-    await this.connect();
-    this.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (err, res) => {
-      if (res && res.appId) {
-        this.getAppList().then(async (apps) => {
-          const list = apps.filter(app => app.id === res.appId);
-          if (list.length && list.length > 0) {
-            const app = list[0];
-            this.setCapabilityValue('speaker_artist', app.name);
-
-            const channel = await this.getCurrentChannel();
-            if (channel.returnValue){
-              this.setCapabilityValue('speaker_track', `${channel.channelNumber} | ${channel.channelName}`);
-            } else {
-              this.setCapabilityValue('speaker_track', '');
-            }
-
-            this.image.setStream(async (stream) => {
-              const appImage = await fetch(app.imageLarge || app.image);
-
-              if(!appImage.ok)
-                throw new Error('Invalid Response');
-
-              return appImage.body.pipe(stream);
-            });
-            this.image.update();
-          }
-        });
-        const newApp = res.appId;
-        const oldApp = this.getStoreValue('app');
-        if (newApp && oldApp !== newApp) {
-          this.setStoreValue('app', newApp);
-          this._driver.triggerAppChanged(this, {
-            oldApp,
-            newApp
-          }, {
-            oldApp,
-            newApp
-          });
-        }
-      }
-    });
-  }
-
-  async checkSoundOutput() {
-    await this.connect();
-    this.lgtv.subscribe('ssap://com.webos.service.apiadapter/audio/getSoundOutput', (err, res) => {
-      if (res && res.soundOutput) {
-        const newSoundOutput = res.soundOutput;
-        const oldSoundOutput = this.getStoreValue('soundOutput');
-        if (newSoundOutput && oldSoundOutput !== newSoundOutput) {
-          this.setStoreValue('soundOutput', newSoundOutput);
-          this.log('Sound change', oldSoundOutput, newSoundOutput);
-          this._driver.triggerSoundOutputChanged(this, {
-            oldSoundOutput,
-            newSoundOutput
-          }, {
-            oldSoundOutput,
-            newSoundOutput
-          });
-        }
-      }
-    });
-  }
-
-  async checkChannel() {
-    await this.connect();
-    this.lgtv.subscribe('ssap://tv/getCurrentChannel', (err, res) => {
-      if (res && res.channelNumber) {
-        this.setCapabilityValue('speaker_track', `${res.channelNumber} | ${res.channelName}`);
-        const newChannel = res.channelNumber;
-        const oldChannel = this.getStoreValue('channel');
-        if (newChannel && oldChannel !== newChannel) {
-          this.setStoreValue('channel', newChannel);
-          this._driver.triggerChannelChanged(this, {
-            oldChannel,
-            newChannel
-          }, {
-            oldChannel,
-            newChannel
-          });
-        }
-      }
-    });
-  }
-
-  async setVolumeUpDown(up) {
-    await this.connect();
-    const action = up ? 'volumeUp' : 'volumeDown';
-    this.lgtv.request(`ssap://audio/${action}`, (err, res) => {
-      if (err) {
-        this.error(err);
+      this.log(`appListener: Try to get the current channel to gather more media screen information for '${newAppId}' ${app.name}`);
+      const channel = await this._channelCurrent().catch(this.error);
+      if (!channel) {
+        this.log(`appListener: No channel found for '${newAppId}' ${app.name}, probably not LiveTV. Set capability ${capabilities.speakerTrack} to empty string`);
+        this.setCapabilityValue(capabilities.speakerTrack, '');
       } else {
-        let volume = this.getCapabilityValue('volume_set');
-        volume = up ? volume + 1 : volume - 1;
-        this.setCapabilityValue('volume_set', volume)
-          .catch(this.error);
+        this.log(`appListener: Channel found for '${newAppId}' ${app.name}. Set capability ${capabilities.speakerTrack} to '${channel.channelNumber} | ${channel.channelName}'`);
+        this.setCapabilityValue(capabilities.speakerTrack, `${channel.channelNumber} | ${channel.channelName}`);
+      }
+
+      if (!app.imageLarge && !app.image) {
+        this.log(`appListener: No image found for '${newAppId}' ${app.name}`);
+        return;
+      }
+
+      this.log(`appListener: Set image for '${newAppId}' ${app.name} (${app.imageLarge || app.image})`);
+      this.image.setStream(async (stream) => {
+        const appImage = await fetch(app.imageLarge || app.image);
+
+        if (!appImage.ok)
+          throw new Error('Invalid Response');
+
+        return appImage.body.pipe(stream);
+      });
+      this.image.update();
+    });
+  }
+
+  /**
+   * Listen for changes in sound output
+   */
+  soundOutputListener() {
+    this.log(`soundOutputListener: Called`);
+    this._soundOutputListener((newSoundOutput) => {
+      const oldSoundOutput = this.getStoreValue(store.currentSoundOutput);
+      this.log(`soundOutputListener: Sound output changed from ${oldSoundOutput} to ${newSoundOutput}`);
+
+      if (newSoundOutput && oldSoundOutput !== newSoundOutput) {
+        this.log(`soundOutputListener: Store ${store.currentSoundOutput} to ${newSoundOutput}`);
+        this.setStoreValue(store.currentSoundOutput, newSoundOutput);
+
+        this.log(`soundOutputListener: Flow trigger sound output changed`);
+        this._driver.triggerSoundOutputChanged(this, {
+          oldSoundOutput,
+          newSoundOutput
+        }, {
+          oldSoundOutput,
+          newSoundOutput
+        });
       }
     });
   }
 
-  async muteVolume(value) {
-    await this.connect();
-    this.lgtv.request('ssap://audio/setMute', {mute: value}, (err, res) => {
-      this.setCapabilityValue('volume_mute', value)
-        .catch(this.error);
-    });
-  }
+  /**
+   * Listen for changes in channel
+   */
+  channelListener() {
+    this.log(`channelListener: Called`);
+    this._channelListener((newChannel) => {
+      const oldChannel = this.getStoreValue(store.currentChannel);
+      this.log(`channelListener: Channel changed from ${oldChannel} to ${newChannel.channelName}`);
 
-  async setChannelUpDown(action) {
-    await this.connect();
-    this.lgtv.request(`ssap://tv/${action}`, (err, res) => {
-      if (err) {
-        return this.error(err);
+      this.log(`channelListener: Set capability ${capabilities.speakerTrack} to '${newChannel.channelNumber} | ${newChannel.channelName}'`);
+      this.setCapabilityValue(capabilities.speakerTrack, `${newChannel.channelNumber} | ${newChannel.channelName}`);
+
+      if (`${newChannel.channelNumber}` !== `${oldChannel}`) {
+        this.log(`channelListener: Set Store ${store.currentChannel} to '${newChannel.channelNumber}'`);
+        this.setStoreValue(store.currentChannel, `${newChannel.channelNumber}`);
+
+        this.log(`soundOutputListener: Flow trigger channel changed`);
+        this._driver.triggerChannelChanged(this, {
+          oldChannel,
+          newChannel: newChannel.channelNumber
+        }, {
+          oldChannel,
+          newChannel: newChannel.channelNumber
+        });
       }
     });
   }
 
-  async sendToast(message, iconData) {
-    await this.connect();
-    let data = {message};
-    if (iconData) {
-      data['iconExtension'] = 'tiff';
-      data['iconData'] = iconData;
-      if (data.iconData.includes(',')) {
-        data.iconData = data.iconData.split(',')[1];
+  /**
+   * Toggle power state on/off
+   *
+   * @param {boolean} value Represents on|off with true|false
+   * @returns {Promise<void>}
+   */
+  async toggleOnOff(value) {
+    this.log(`toggleOnOff: Called`, value);
+    if (value) {
+      this.log(`toggleOnOff: Try to turn the tv on`);
+      const on = await this._turnOn().catch(this.error);
+      if (on) {
+        this.log(`toggleOnOff: TV turned on. Set capability ${capabilities.onOff} to ${value}`);
+        this.setCapabilityValue(capabilities.onOff, true);
+      }
+    } else {
+      this.log(`toggleOnOff: Try to turn the tv off`);
+      const off = this._turnOff().catch(this.error);
+      if (off) {
+        this.log(`toggleOnOff: TV turned off. Set capability ${capabilities.onOff} to ${value}`);
+        this.setCapabilityValue(capabilities.onOff, false);
       }
     }
-    return new Promise((resolve, reject) => {
-      this.lgtv.request('ssap://system.notifications/createToast', data, (err, res) => {
-        if (err) {
-          this.error(err);
-          reject(err);
-        }
-        resolve(res);
-      });
-    });
   }
 
-  changeChannelTo(channelNumber) {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.request(`ssap://tv/openChannel`, {channelNumber}, (err, res) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(true);
-        }
-      });
-    });
+  /**
+   * Set the volume to a specific value
+   *
+   * @param {number} value Represents the volume value
+   * @returns {Promise<void>}
+   */
+  async volumeSet(value) {
+    this.log(`volumeSet: Called`, value);
+    this.log(`volumeSet: Try to set the volume to ${value}`);
+    const newVolume = await this._volumeSet(value).catch(this.error);
+    if (newVolume){
+      this.log(`volumeSet: Volume set. Set capability ${capabilities.volumeSet} to ${value}`);
+      this.setCapabilityValue(capabilities.volumeSet, value);
+    }
   }
 
-  async getCurrentChannel() {
-    await this.connect();
-    return new Promise(async (resolve, reject) => {
-      this.lgtv.request('ssap://tv/getCurrentChannel', (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(res);
-      })
-    });
+  /**
+   * Toggle mute
+   *
+   * @param value
+   * @returns {Promise<void>}
+   */
+  async volumeMute(value) {
+    this.log(`volumeMute: Called`, value);
+    this.log(`volumeMute: Try to set mute to ${value}`);
+    const response = await this._volumeMute(value);
+    if (response) {
+      this.log(`volumeMute: Mute set. Set capability ${capabilities.volumeMute} to ${value}`);
+      this.setCapabilityValue(capabilities.volumeMute, response.muted);
+    }
   }
 
-  getAppList(query = '') {
+  /**
+   * Increase volume by 1
+   *
+   * @returns {Promise<void>}
+   */
+  async volumeUp() {
+    this.log(`volumeUp: Called`);
+    const volume = this.getCapabilityValue(capabilities.volumeSet);
+    this.log(`volumeUp: Current volume ${volume}. Try to increase the volume`);
+    const response = await this._volumeUp();
+    if (response) {
+      this.log(`volumeUp: Volume increased. Set capability ${capabilities.volumeSet} to ${volume + 1}`);
+      this.setCapabilityValue(capabilities.volumeSet, volume + 1);
+    }
+  };
+
+  /**
+   * Decrease volume by 1
+   * @returns {Promise<void>}
+   */
+  async volumeDown() {
+    this.log(`volumeDown: Called`);
+    const volume = this.getCapabilityValue(capabilities.volumeSet);
+    this.log(`volumeDown: Current volume ${volume}. Try to decrease the volume`);
+    const response = await this._volumeDown();
+    if (response) {
+      this.log(`volumeDown: Volume decreased. Set capability ${capabilities.volumeSet} to ${volume - 1}`);
+      this.setCapabilityValue(capabilities.volumeSet, volume - 1);
+    }
+  }
+
+  /**
+   * Get all apps with filter option by name
+   *
+   * @param {string} query Search value
+   * @returns {Promise<*[]>}
+   */
+  async filteredAppList(query = '') {
+    const device = this;
+    this.log(`filteredAppList: Called`, query);
     function _filter(list, query) {
-      let tmp = list.apps.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+      device.log(`filteredAppList: Filter list with query '${query}'`, list);
+      let tmp = list.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
+      device.log(`filteredAppList: Filter sort result by name`, tmp);
       return tmp.sort((a, b) => {
         return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
       });
     }
 
-    return new Promise(async (resolve) => {
-      let apps = [];
-      if (this.launchPoints.apps.length < 1 || this.launchPoints.date < new Date().setDate(new Date().getDate() - 1)) {
-        await this.connect();
-        if (!this.lgtv) {
-          return;
-        }
-        this.lgtv.request('ssap://com.webos.applicationManager/listLaunchPoints', (err, result) => {
-          if (result) {
-            this.launchPoints.apps = result.launchPoints.map(point => {
-              return {
-                name: point.title,
-                image: point.icon,
-                id: point.id,
-                imageLarge: point.largeIcon
-              };
-            });
-          }
-          apps = _filter(this.launchPoints, query);
-          resolve(apps);
-        });
-      } else {
-        apps = _filter(this.launchPoints, query);
-        resolve(apps);
-      }
-    });
+    this.log(`filteredAppList: try to get all apps/inputs`);
+    const list = await this._appList().catch(this.error);
+    if (!list) {
+      this.error(`filteredAppList: No apps/inputs found! Return empty array`);
+      return [];
+    }
+    return _filter(list, query);
   }
 
-  getChannelList(query = '') {
+  /**
+   * Get all channels with filter option by name or number
+   *
+   * @param {string} query Search value
+   * @returns {Promise<*[]>}
+   */
+  async filteredChannelList(query = '') {
+    this.log(`filteredChannelList: Called`, query);
+    const device = this;
     function _filter(list, query) {
-      let tmp = list.channels.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
+      device.log(`filteredChannelList: Filter list with query '${query}'`, list);
+      let tmp = list.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
+      device.log(`filteredAppList: Filter sort result by number`, tmp);
       return tmp.sort((a, b) => {
         const numA = parseInt(a.number);
         const numB = parseInt(b.number);
@@ -483,137 +422,13 @@ class WebosPlusDevice extends Homey.Device {
       });
     }
 
-    return new Promise(async (resolve) => {
-      let channels = [];
-      if (this.channelList.channels.length < 1 || this.channelList.date < new Date().setDate(new Date().getDate() - 1)) {
-        this.connect();
-        if (!this.lgtv) {
-          return;
-        }
-        this.lgtv.request('ssap://tv/getChannelList', (err, result) => {
-          if (err) {
-            this.error(err);
-          }
-          if (result) {
-            this.channelList.channels = result.channelList.map(channel => {
-              return {
-                name: channel.channelName,
-                description: channel.channelNumber,
-                number: channel.channelNumber,
-                search: `${channel.channelNumber} ${channel.channelName}`
-              };
-            });
-          }
-          channels = _filter(this.channelList, query);
-          resolve(channels);
-        });
-      } else {
-        channels = _filter(this.channelList, query);
-        resolve(channels);
-      }
-    });
-  }
-
-  getCurrentApp() {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.request('ssap://com.webos.applicationManager/getForegroundAppInfo', (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(res)
-      });
-    });
-  }
-
-  turnOff() {
-    if (!this.connected || !this.lgtv) {
-      return;
+    this.log(`filteredChannelList: try to get all channels`);
+    const list = await this._channelList().catch(this.error);
+    if (!list) {
+      this.error(`filteredChannelList: No channels found! Return empty array`);
+      return [];
     }
-    this.lgtv.request('ssap://system/turnOff', (err, res) => {
-      this.handleOff();
-    });
-  }
-
-  handleOff() {
-    this.connected = false;
-    if (this.lgtv) {
-      this.lgtv.disconnect();
-    }
-    const currentValue = this.getCapabilityValue('onoff');
-    const lastChange = (Date.now() - this.latestOnOffChange) / 1000;
-    if (currentValue && lastChange > 90) {
-      this.latestOnOffChange = Date.now();
-      this.setCapabilityValue('onoff', false).catch(this.error);
-    }
-  };
-
-  handleOn() {
-    this.connect();
-    const currentValue = this.getCapabilityValue('onoff');
-    const lastChange = (Date.now() - this.latestOnOffChange) / 1000;
-    if (!currentValue && lastChange > 90) {
-      this.latestOnOffChange = Date.now();
-      this.setCapabilityValue('onoff', true).catch(this.error);
-    }
-  }
-
-  turnOn() {
-    const {macAddress} = this.settings;
-    try {
-      wol.wake(macAddress, (error) => {
-        if (error !== undefined) throw error;
-      });
-
-      this.handleOn();
-      return Promise.resolve(true);
-    } catch (error) {
-      this.log(`Failed waking up ${macAddress}`);
-      return Promise.reject(new Error(`Failed waking up ${macAddress}`));
-    }
-  }
-
-  toggleOnOff(value) {
-    if (!value && this.getCapabilityValue('onoff')) {
-      if (!this.connected) {
-        this.connect().then(this.turnOff);
-      } else {
-        this.turnOff();
-        return Promise.resolve(true);
-      }
-    } else {
-      return this.turnOn();
-    }
-  }
-
-  getValue(name) {
-    return this.getCapabilityValue(name);
-  }
-
-  getCurrentSoundOutput() {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.request(`ssap://com.webos.service.apiadapter/audio/getSoundOutput`, (err, res) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(res.soundOutput);
-        }
-      });
-    });
-  }
-
-  setSoundOutput(output) {
-    return new Promise(async (resolve, reject) => {
-      await this.connect();
-      this.lgtv.request(`ssap://com.webos.service.apiadapter/audio/changeSoundOutput`, {output}, (err, res) => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve(true);
-        }
-      });
-    });
+    return _filter(list, query);
   }
 }
 

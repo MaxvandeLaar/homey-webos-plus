@@ -4,6 +4,7 @@ const Homey = require('homey');
 const {ManagerArp} = require('homey');
 const http = require('http');
 const https = require('https');
+const {capabilities} = require('./webos/utils/constants');
 
 class WebosPlusDriver extends Homey.Driver {
   onInit() {
@@ -34,7 +35,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          const channels = await device.getChannelList(query);
+          const channels = await device.filteredChannelList(query);
           resolve(channels);
         });
       });
@@ -50,7 +51,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          const apps = await device.getAppList(query);
+          const apps = await device.filteredAppList(query);
           resolve(apps);
         });
       });
@@ -131,11 +132,11 @@ class WebosPlusDriver extends Homey.Driver {
   conditionSoundOutput() {
     this._conditionSoundOutput
       .register()
-      .registerRunListener(async (args, state) => {
+      .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const output = args.output;
         return new Promise((resolve, reject) => {
-          device.getCurrentSoundOutput().then((res) => {
+          device._soundOutputCurrent().then((res) => {
             resolve(res.toLowerCase() === output.toLowerCase())
           }, reject);
         });
@@ -145,11 +146,11 @@ class WebosPlusDriver extends Homey.Driver {
   conditionChannelNumber() {
     this._conditionChannelNumber
       .register()
-      .registerRunListener(async (args, state) => {
+      .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const channel = args.channel;
         return new Promise((resolve, reject) => {
-          device.getCurrentChannel().then((res) => {
+          device._channelCurrent().then((res) => {
               resolve(`${channel}` === res.channelNumber);
             },
             (err) => {
@@ -166,7 +167,7 @@ class WebosPlusDriver extends Homey.Driver {
         const device = args.webosDevice;
         const channel = args.channel;
         return new Promise((resolve, reject) => {
-          device.getCurrentChannel().then((res) => {
+          device._channelCurrent().then((res) => {
               resolve(channel.number === res.channelNumber);
             },
             (err) => {
@@ -178,7 +179,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          const apps = await device.getChannelList(query);
+          const apps = await device.filteredChannelList(query);
           resolve(apps);
         });
       });
@@ -190,7 +191,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const volume = args.volume;
-        const deviceVolume = device.getValue('volume_set');
+        const deviceVolume = device.getCapabilityValue(capabilities.volumeSet);
         return Promise.resolve(deviceVolume > volume);
       });
   }
@@ -201,7 +202,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const volume = args.volume;
-        const deviceVolume = device.getValue('volume_set');
+        const deviceVolume = device.getCapabilityValue(capabilities.volumeSet);
         return Promise.resolve(deviceVolume < volume);
       });
   }
@@ -212,7 +213,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         const volume = args.volume;
-        const deviceVolume = device.getValue('volume_set');
+        const deviceVolume = device.getCapabilityValue(capabilities.volumeSet);
         return Promise.resolve(deviceVolume === volume);
       });
   }
@@ -222,7 +223,7 @@ class WebosPlusDriver extends Homey.Driver {
       .register()
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
-        const muted = device.getValue('volume_mute');
+        const muted = device.getCapabilityValue(capabilities.volumeMute);
         return Promise.resolve(muted);
       });
   }
@@ -234,7 +235,7 @@ class WebosPlusDriver extends Homey.Driver {
         const device = args.webosDevice;
         const app = args.app;
         return new Promise((resolve, reject) => {
-          device.getCurrentApp().then((res) => {
+          device._appCurrent().then((res) => {
               resolve(app.id === res.appId);
             },
             (err) => {
@@ -246,7 +247,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          const apps = await device.getAppList(query);
+          const apps = await device.filteredAppList(query);
           resolve(apps);
         });
       });
@@ -258,7 +259,7 @@ class WebosPlusDriver extends Homey.Driver {
         const device = args.webosDevice;
         const {output} = args;
         return new Promise((resolve, reject) => {
-          device.setSoundOutput(output).then(() => {
+          device._soundOutputSet(output).then(() => {
             resolve(true);
           }, reject)
         });
@@ -293,14 +294,14 @@ class WebosPlusDriver extends Homey.Driver {
             });
           }
 
-          device.sendToast(message, icon).then(() => {
+          device._toastSend(message, icon).then(() => {
             resolve(true);
           }, () => {
             resolve(true)
           });
         });
       })
-      .register()
+      .register();
   }
 
   actionSendToast() {
@@ -314,14 +315,14 @@ class WebosPlusDriver extends Homey.Driver {
             icon = await this.encodeImage(iconData);
           }
 
-          device.sendToast(message, icon).then(() => {
+          device._toastSend(message, icon).then(() => {
             resolve(true);
           }, () => {
             resolve(true)
           });
         });
       })
-      .register()
+      .register();
   }
 
   actionSimulateButton() {
@@ -329,15 +330,14 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         return new Promise((resolve, reject) => {
-          device.simulateButton(args.button).then(() => {
+          device._simulateButton(args.button).then(() => {
             resolve(true);
           }, (_error) => {
             reject(false)
           });
         });
       })
-      .register()
-      .getArgument('button');
+      .register();
   }
 
   actionChangeChannelNumber() {
@@ -345,13 +345,12 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         return new Promise((resolve, reject) => {
-          device.changeChannelTo(`${args.channel}`).then(() => {
+          device._channelSet(`${args.channel}`).then(() => {
             resolve(true);
           }, () => resolve(true));
         });
       })
-      .register()
-      .getArgument('channel');
+      .register();
   }
 
   actionChangeChannelList() {
@@ -359,7 +358,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         return new Promise((resolve, reject) => {
-          device.changeChannelTo(args.channel.number).then(() => {
+          device._channelSet(`${args.channel.number}`).then(() => {
             resolve(true);
           }, () => resolve(true));
         });
@@ -369,7 +368,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          const channels = await device.getChannelList(query);
+          const channels = await device.filteredChannelList(query);
           resolve(channels);
         });
       });
@@ -380,7 +379,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerRunListener((args, state) => {
         const device = args.webosDevice;
         return new Promise((resolve, reject) => {
-          device.launchApp(args.app.id).then(() => {
+          device._appLaunch(args.app.id).then(() => {
             resolve(true);
           }, (_error) => {
             resolve(false);
@@ -392,7 +391,7 @@ class WebosPlusDriver extends Homey.Driver {
       .registerAutocompleteListener((query, args) => {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
-          const apps = await device.getAppList(query);
+          const apps = await device.filteredAppList(query);
           resolve(apps);
         });
       });

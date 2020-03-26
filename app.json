@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
@@ -1149,34 +1149,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "General Settings",
-            "nl": "Instellingen"
-          },
-          "children": [
-            {
-              "id": "pollInterval",
-              "type": "number",
-              "label": {
-                "en": "Poll interval"
-              },
-              "hint": {
-                "en": "Interval to check if the tv is on or off",
-                "nl": "Interval om te controleren of de tv aan of uit is"
-              },
-              "value": 120,
-              "min": 120,
-              "max": 3600,
-              "units": {
-                "en": "seconds"
-              }
-            }
-          ]
-        }
-      ],
       "capabilities": [
         "onoff",
         "volume_set",
@@ -1184,10 +1156,7 @@
         "channel_up",
         "volume_down",
         "volume_up",
-        "volume_mute",
-        "speaker_playing",
-        "speaker_prev",
-        "speaker_next"
+        "volume_mute"
       ],
       "capabilitiesOptions": {
         "onoff": {
