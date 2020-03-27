@@ -297,6 +297,7 @@ class WebosPlusDriver extends Homey.Driver {
             icon = await new Promise((resolve) => {
               imageStream.setEncoding('binary');
               const type = imageStream.contentType;
+              this.log('DRIVER TYPE', type);
               const prefix = `data:${type};base64,`;
               let body = '';
 

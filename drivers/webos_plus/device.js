@@ -19,9 +19,6 @@
 'use strict';
 
 const Homey = require('homey');
-const wol = require('node-wol');
-const {ManagerArp} = require('homey');
-const mac = require('mac-regex');
 const fetch = require('node-fetch');
 const WebOSTV = require('./webos/WebOSTV');
 const {capabilities, store} = require('./webos/utils/constants');
@@ -230,8 +227,8 @@ class WebosPlusDevice extends WebOSTV {
         this.log(`appListener: No channel found for '${newAppId}' ${app.name}, probably not LiveTV. Set capability ${capabilities.speakerTrack} to empty string`);
         this.setCapabilityValue(capabilities.speakerTrack, '');
       } else {
-        this.log(`appListener: Channel found for '${newAppId}' ${app.name}. Set capability ${capabilities.speakerTrack} to '${channel.channelNumber} | ${channel.channelName}'`);
-        this.setCapabilityValue(capabilities.speakerTrack, `${channel.channelNumber} | ${channel.channelName}`);
+        this.log(`appListener: Channel found for '${newAppId}' ${app.name}. Set capability ${capabilities.speakerTrack} to '${this._formatSpeakerTrack(channel.channelNumber, channel.channelName)}'`);
+        this.setCapabilityValue(capabilities.speakerTrack, this._formatSpeakerTrack(channel.channelNumber, channel.channelName));
       }
 
       if (!app.imageLarge && !app.image) {
@@ -286,8 +283,8 @@ class WebosPlusDevice extends WebOSTV {
       const oldChannel = this.getStoreValue(store.currentChannel);
       this.log(`channelListener: Channel changed from ${oldChannel} to ${newChannel.channelName}`);
 
-      this.log(`channelListener: Set capability ${capabilities.speakerTrack} to '${newChannel.channelNumber} | ${newChannel.channelName}'`);
-      this.setCapabilityValue(capabilities.speakerTrack, `${newChannel.channelNumber} | ${newChannel.channelName}`);
+      this.log(`channelListener: Set capability ${capabilities.speakerTrack} to '${this._formatSpeakerTrack(newChannel.channelNumber, newChannel.channelName)}'`);
+      this.setCapabilityValue(capabilities.speakerTrack, this._formatSpeakerTrack(newChannel.channelNumber, newChannel.channelName));
 
       if (`${newChannel.channelNumber}` !== `${oldChannel}`) {
         this.log(`channelListener: Set Store ${store.currentChannel} to '${newChannel.channelNumber}'`);
@@ -448,6 +445,23 @@ class WebosPlusDevice extends WebOSTV {
     }
     return _filter(list, query);
   }
+
+  /**
+   * Format the speaker track
+   *
+   * @param {string|number} number The channel number
+   * @param {string} name The channel name
+   * @returns {string}
+   * @private
+   */
+  _formatSpeakerTrack(number, name) {
+    let track = number ? `${number}` : '';
+
+    if (name) {
+      track = track && track.length > 0 ? `${track} | ${name}` : `${name};`
+    }
+    return track;
+  };
 }
 
 module.exports = WebosPlusDevice;

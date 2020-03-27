@@ -9,9 +9,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Max van de Laar",
-  "license": "GNU",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "Github",
+    "url": "https://github.com/MaxvandeLaar/homey-webos-plus"
+  },
   "dependencies": {
-    "mac-regex": "^1.0.0",
     "node-fetch": "^2.6.0",
     "node-wol": "^0.1.1",
     "websocket": "^1.0.30"
