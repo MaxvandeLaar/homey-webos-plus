@@ -104,22 +104,22 @@ class WebOSTV extends Homey.Device {
         return;
       }
 
-      const statusState = result.state ? result.state.toLowerCase() : '';
-      status = statusState;
+      status = result.state ? result.state.toLowerCase() : '';
       processing = result.processing ? result.processing : null;
       // let statusPowerOnReason = (res && res.powerOnReason ? res.powerOnReason : null);
-      if (statusState === 'active' && !processing) {
-        this.log(`_powerStateListener: TV changed to active`);
-        handleOn();
-      } else {
-        this.log(`_powerStateListener: TV changed to something other than active`, statusState);
-        this.log(`_powerStateListener: Set timeout to 5 seconds and check then if it's not processing`);
-        timer = setTimeout(() => {
-          if (!processing && status !== 'active' ) {
-            handleOff();
-          }
-        }, 5000);
-      }
+
+      this.log(`_powerStateListener: ${timer ? 'Reset' : 'Set'} timeout to ${this.getSettings().powerStateTimeout || 2000} ms and check the state`);
+      timer = setTimeout(() => {
+        this.log(`_powerStateListener: Called timeout`, status, processing);
+        if (status === 'active') {
+          handleOn();
+        }
+        if (status !== 'active') {
+          handleOff();
+        }
+        clearTimeout(timer);
+        timer = null;
+      }, this.getSettings().powerStateTimeout || 2000);
     });
   }
 

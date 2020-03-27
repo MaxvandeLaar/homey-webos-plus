@@ -1149,6 +1149,36 @@
           "template": "add_devices"
         }
       ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Advanced settings",
+            "nl": "Geavanceerde instellingen"
+          },
+          "children": [
+            {
+              "id": "powerStateTimeout",
+              "type": "number",
+              "label": {
+                "en": "Timeout power off check",
+                "nl": "Timeout tv uit check"
+              },
+              "hint": {
+                "en": "The timeout is used to test whether or not the tv is turned off. Only change this value if you know what you are doing or are experiencing issues when you turn off the tv with the remote but it not being registered in the app. Increase the value to give the app more time before checking (increasing reliability). Decrease the value if you think the you can get away with less time between checks, however it might become unreliable if you make it too fast.",
+                "nl": "De timeout wordt gebruikt om te controleren of de tv uit gaat. Verander dit alleen als je weet wat je doet of als je problemen ervaart wanneer je de tv uitzet met de afstandsbediening maar dit niet geregistreerd wordt in de app. Verhoog de waarde om de app meer tijd te geven tussen de controle (verhoogt betrouwbaarheid). Verlaag de waarde als je denkt dat het net wat sneller kan, echter kan het onbetrouwbaar worden als je het te kort maakt."
+              },
+              "value": 2000,
+              "min": 0,
+              "max": 60000,
+              "units": {
+                "en": "miliseconds",
+                "nl": "miliseconden"
+              }
+            }
+          ]
+        }
+      ],
       "capabilities": [
         "onoff",
         "volume_set",
