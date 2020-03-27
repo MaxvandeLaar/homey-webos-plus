@@ -17,7 +17,7 @@
  */
 
 const Homey = require('homey');
-const {endpoints, store} = require('./utils/constants');
+const {endpoints} = require('./utils/constants');
 const wol = require('node-wol');
 
 class WebOSTV extends Homey.Device {
@@ -88,8 +88,16 @@ class WebOSTV extends Homey.Device {
    */
   _powerStateListener(handleOn, handleOff) {
     this.log(`_powerStateListener: Start listening for changes in power state`);
+    let timer = null;
+    let processing = null;
+    let status = null;
     this.lgtv.subscribe(endpoints.powerState, (err, res) => {
       const {error, result} = this._handleResponse(err, res, endpoints.powerState);
+      if (timer) {
+        this.log(`_powerStateListener: Reset timer`);
+        clearTimeout(timer);
+        timer = null;
+      }
       this.log('_powerStateListener: Power state changed', result);
       if (error) {
         this.error(error);
@@ -97,14 +105,20 @@ class WebOSTV extends Homey.Device {
       }
 
       const statusState = result.state ? result.state.toLowerCase() : '';
-      // let statusProcessing = (res && res.processing ? res.processing : null);
+      status = statusState;
+      processing = result.processing ? result.processing : null;
       // let statusPowerOnReason = (res && res.powerOnReason ? res.powerOnReason : null);
-      if (statusState === 'active') {
+      if (statusState === 'active' && !processing) {
         this.log(`_powerStateListener: TV changed to active`);
         handleOn();
       } else {
         this.log(`_powerStateListener: TV changed to something other than active`, statusState);
-        handleOff();
+        this.log(`_powerStateListener: Set timeout to 5 seconds and check then if it's not processing`);
+        timer = setTimeout(() => {
+          if (!processing && status !== 'active' ) {
+            handleOff();
+          }
+        }, 5000);
       }
     });
   }
@@ -631,7 +645,14 @@ class WebOSTV extends Homey.Device {
       data['iconExtension'] = 'tiff';
       data['iconData'] = iconData;
       if (data.iconData.includes(',')) {
-        data.iconData = data.iconData.split(',')[1];
+        const base64 = data.iconData.split(',');
+        data.iconData = base64[1];
+        const type = base64[0].split('/');
+        let typeString = type.length > 0 ? type[1] : null;
+        typeString = typeString ? typeString.split(';')[0] : null;
+        if (typeString) {
+          data.iconExtension = typeString;
+        }
       }
     }
     this.log(`_toastSend: Send request to create a toast message`);
