@@ -111,10 +111,10 @@ class WebOSTV extends Homey.Device {
       this.log(`_powerStateListener: ${timer ? 'Reset' : 'Set'} timeout to ${this.getSettings().powerStateTimeout || 2000} ms and check the state`);
       timer = setTimeout(() => {
         this.log(`_powerStateListener: Called timeout`, status, processing);
-        if (status === 'active') {
+        if (status === 'active' && !processing) {
           handleOn();
         }
-        if (status !== 'active') {
+        if (status !== 'active' || (processing && processing.toLowerCase() === 'prepare suspend')) {
           handleOff();
         }
         clearTimeout(timer);
