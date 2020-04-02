@@ -1,10 +1,11 @@
 {
   "name": "com.maxvandelaar.homey-webos",
-  "version": "2.0.0",
+  "version": "2.0.0-rc6",
   "description": "Add improved support for LG tv via WebOS",
   "main": "app.js",
   "scripts": {
     "deploy": "npm install && homey app install",
+    "build": "webpack --config=config/webpack.prod.js --env.NODE_ENV=development",
     "release": "./release.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,6 +21,13 @@
     "websocket": "^1.0.30"
   },
   "devDependencies": {
-    "homey": "^2.3.1"
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "homey": "^2.3.1",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11",
+    "webpack-obfuscator": "^0.27.2",
+    "webpack-shell-plugin": "^0.5.0"
   }
 }

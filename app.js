@@ -18,8 +18,6 @@
 
 'use strict';
 
-
-
 const Homey = require('homey');
 
 class WebosPlus extends Homey.App {
