@@ -70,13 +70,13 @@ class WebOSTV extends Homey.Device {
    */
   _handleResponse(err, res, endpoint) {
     this.log(`_handleResponse: ${endpoint}`);
-    if (err) {
-      this.error(endpoint, err);
+    if (err || !res.returnValue) {
+      this.error('_handleResponse:', endpoint, err || res);
     }
     if (res && res.returnValue) {
       return {error: null, result: res, endpoint};
     } else {
-      return {error: err, result: res, endpoint};
+      return {error: err || res.errorText, result: res, endpoint};
     }
   }
 
@@ -105,16 +105,17 @@ class WebOSTV extends Homey.Device {
       }
 
       status = result.state ? result.state.toLowerCase() : '';
-      processing = result.processing ? result.processing : null;
+      processing = result.processing ? result.processing.toLowerCase() : null;
       // let statusPowerOnReason = (res && res.powerOnReason ? res.powerOnReason : null);
 
       this.log(`_powerStateListener: ${timer ? 'Reset' : 'Set'} timeout to ${this.getSettings().powerStateTimeout || 2000} ms and check the state`);
       timer = setTimeout(() => {
         this.log(`_powerStateListener: Called timeout`, status, processing);
-        if (status === 'active' && !processing) {
+        if ((status === 'active' && !processing) || processing === 'screen on') {
           handleOn();
         }
-        if (status !== 'active' || (processing && processing.toLowerCase() === 'prepare suspend')) {
+
+        if (status !== 'active' || (processing && (processing.includes('standby') || processing.includes('suspend')))) {
           handleOff();
         }
         clearTimeout(timer);
@@ -655,7 +656,7 @@ class WebOSTV extends Homey.Device {
         }
       }
     }
-    this.log(`_toastSend: Send request to create a toast message`);
+    this.log(`_toastSend: Send request to create a toast message as`, data.iconExtension);
     return new Promise((resolve, reject) => {
       this.lgtv.request(endpoints.toast.create, data, (err, res) => {
         const {endpoint, error, result} = this._handleResponse(err, res, endpoints.toast.create);
@@ -663,7 +664,7 @@ class WebOSTV extends Homey.Device {
           this.error(`_toastSend: ${endpoint} with result:`, result);
           return reject(error);
         }
-        this.log(`_toastSend: Successfully sent a toast message`);
+        this.log(`_toastSend: Successfully sent a toast message`, result);
         return resolve(result);
       });
     });

@@ -336,8 +336,8 @@ class WebosPlusDriver extends Homey.Driver {
 
           device._toastSend(message, icon).then(() => {
             resolve(true);
-          }, () => {
-            resolve(true)
+          }, (error) => {
+            reject(error);
           });
         });
       })
@@ -508,6 +508,10 @@ class WebosPlusDriver extends Homey.Driver {
         const type = response.headers['content-type'];
         const prefix = `data:${type};base64,`;
         let body = '';
+
+        response.on('error', (error) => {
+          reject(error);
+        });
 
         response.on('data', (chunk) => {
           body += chunk;
