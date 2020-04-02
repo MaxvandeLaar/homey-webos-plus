@@ -20,6 +20,8 @@ const Homey = require('homey');
 const {endpoints} = require('./utils/constants');
 const wol = require('node-wol');
 const Jimp = require('jimp-compact');
+const winston  = require('winston');
+const {Loggly} = require('winston-loggly-bulk');
 
 class WebOSTV extends Homey.Device {
 
@@ -28,6 +30,13 @@ class WebOSTV extends Homey.Device {
    */
   construct() {
     this.lgtv = null;
+    this.winston = winston;
+    this.winston.add(new Loggly({
+      token: "6faa5c79-37e4-41f1-8e05-6e177773fd71",
+      subdomain: "maxvandelaar",
+      tags: ["Homey-WebOS-Plus"],
+      json: true
+    }));
   }
 
   /**
@@ -111,6 +120,7 @@ class WebOSTV extends Homey.Device {
 
       this.log(`_powerStateListener: ${timer ? 'Reset' : 'Set'} timeout to ${this.getSettings().powerStateTimeout || 2000} ms and check the state`);
       timer = setTimeout(() => {
+        this.winston.log('info','_powerStateListener last update', {status, processing});
         this.log(`_powerStateListener: Called timeout`, status, processing);
         if ((status === 'active' && !processing) || processing === 'screen on') {
           handleOn();
