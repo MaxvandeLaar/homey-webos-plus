@@ -19,6 +19,7 @@
 const Homey = require('homey');
 const {endpoints} = require('./utils/constants');
 const wol = require('node-wol');
+const Jimp = require('jimp-compact');
 
 class WebOSTV extends Homey.Device {
 
@@ -656,8 +657,11 @@ class WebOSTV extends Homey.Device {
         }
       }
     }
+
     this.log(`_toastSend: Send request to create a toast message as`, data.iconExtension);
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      data.iconData = await this._resizeIcon(data.iconData, data.iconExtension);
+
       this.lgtv.request(endpoints.toast.create, data, (err, res) => {
         const {endpoint, error, result} = this._handleResponse(err, res, endpoints.toast.create);
         if (error) {
@@ -670,6 +674,31 @@ class WebOSTV extends Homey.Device {
     });
   }
 
+  /**
+   * Resize Toast icons to maximum of 200px
+   * @param base64
+   * @param mimeType
+   * @returns {Promise<unknown>}
+   * @private
+   */
+  _resizeIcon(base64, mimeType) {
+    return new Promise((resolve, reject) => {
+      const icon = new Buffer(base64, 'base64');
+      Jimp.read(icon)
+        .then(async (newIcon) => {
+          const stringData = await newIcon.contain(200, 200).getBase64Async(`image/${mimeType}`);
+          resolve(
+            stringData.split(',')[1]
+          );
+        })
+        .catch(err => {
+          this.error('_resizeIcon: ', err);
+          reject(err);
+        });
+    });
+  }
+
 }
 
 module.exports = WebOSTV;
+

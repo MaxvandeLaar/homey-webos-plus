@@ -17,7 +17,8 @@ module.exports = env => {
     },
     externals: {
       'homey': 'commonjs homey',
-      'websocket': 'commonjs websocket'
+      'websocket': 'commonjs websocket',
+      'jimp-compact': 'commonjs jimp-compact'
     },
     mode: 'production',
     target: 'node',
