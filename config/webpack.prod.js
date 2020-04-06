@@ -18,9 +18,7 @@ module.exports = env => {
     externals: {
       'homey': 'commonjs homey',
       'websocket': 'commonjs websocket',
-      'jimp-compact': 'commonjs jimp-compact',
-      'winston': 'commonjs winston',
-      'winston-loggly-bulk': 'commonjs winston-loggly-bulk'
+      'jimp-compact': 'commonjs jimp-compact'
     },
     mode: 'production',
     target: 'node',
