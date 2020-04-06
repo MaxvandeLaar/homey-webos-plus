@@ -20,8 +20,6 @@ const Homey = require('homey');
 const {endpoints} = require('./utils/constants');
 const wol = require('node-wol');
 const Jimp = require('jimp-compact');
-const winston  = require('winston');
-const {Loggly} = require('winston-loggly-bulk');
 
 class WebOSTV extends Homey.Device {
 
@@ -30,13 +28,6 @@ class WebOSTV extends Homey.Device {
    */
   construct() {
     this.lgtv = null;
-    this.winston = winston;
-    this.winston.add(new Loggly({
-      token: "6faa5c79-37e4-41f1-8e05-6e177773fd71",
-      subdomain: "maxvandelaar",
-      tags: ["Homey-WebOS-Plus"],
-      json: true
-    }));
   }
 
   /**
@@ -80,7 +71,7 @@ class WebOSTV extends Homey.Device {
    */
   _handleResponse(err, res, endpoint) {
     this.log(`_handleResponse: ${endpoint}`);
-    if (err || !res.returnValue) {
+    if (err || (!res.returnValue && !res.channelId)) {
       this.error('_handleResponse:', endpoint, err || res);
     }
     if (res && res.returnValue) {
@@ -101,6 +92,7 @@ class WebOSTV extends Homey.Device {
     let timer = null;
     let processing = null;
     let status = null;
+    let statusPowerOnReason = null;
     this.lgtv.subscribe(endpoints.powerState, (err, res) => {
       const {error, result} = this._handleResponse(err, res, endpoints.powerState);
       if (timer) {
@@ -116,19 +108,40 @@ class WebOSTV extends Homey.Device {
 
       status = result.state ? result.state.toLowerCase() : '';
       processing = result.processing ? result.processing.toLowerCase() : null;
-      // let statusPowerOnReason = (res && res.powerOnReason ? res.powerOnReason : null);
+      statusPowerOnReason = (res && res.powerOnReason ? res.powerOnReason : null);
 
       this.log(`_powerStateListener: ${timer ? 'Reset' : 'Set'} timeout to ${this.getSettings().powerStateTimeout || 2000} ms and check the state`);
       timer = setTimeout(() => {
-        this.winston.log('info','_powerStateListener last update', {status, processing});
         this.log(`_powerStateListener: Called timeout`, status, processing);
-        if ((status === 'active' && !processing) || processing === 'screen on') {
+        let tvSetTo = null;
+
+        //Screen saver(?) should tv be turned on?
+        if ((status === 'active' || status === 'screen saver' && !processing) ||
+          (processing &&
+            (
+              processing.includes('on') ||
+              processing.includes('ready') ||
+              processing.includes('resume') ||
+              processing.includes('saver')
+            )
+          )
+        ) {
+          tvSetTo = true;
           handleOn();
         }
 
-        if (status !== 'active' || (processing && (processing.includes('standby') || processing.includes('suspend')))) {
+        if (status !== 'active' ||
+          (processing && (
+              processing.includes('standby') ||
+              processing.includes('suspend') ||
+              processing.includes('off')
+            )
+          )
+        ) {
+          tvSetTo = false;
           handleOff();
         }
+
         clearTimeout(timer);
         timer = null;
       }, this.getSettings().powerStateTimeout || 2000);
@@ -670,7 +683,9 @@ class WebOSTV extends Homey.Device {
 
     this.log(`_toastSend: Send request to create a toast message as`, data.iconExtension);
     return new Promise(async (resolve, reject) => {
-      data.iconData = await this._resizeIcon(data.iconData, data.iconExtension);
+      if (data.iconData && data.iconExtension && data.iconExtension !== 'tiff') {
+        data.iconData = await this._resizeIcon(data.iconData, data.iconExtension);
+      }
 
       this.lgtv.request(endpoints.toast.create, data, (err, res) => {
         const {endpoint, error, result} = this._handleResponse(err, res, endpoints.toast.create);
@@ -685,7 +700,7 @@ class WebOSTV extends Homey.Device {
   }
 
   /**
-   * Resize Toast icons to maximum of 200px
+   * Resize Toast icons to maximum of 80px
    * @param base64
    * @param mimeType
    * @returns {Promise<unknown>}
@@ -696,7 +711,7 @@ class WebOSTV extends Homey.Device {
       const icon = new Buffer(base64, 'base64');
       Jimp.read(icon)
         .then(async (newIcon) => {
-          const stringData = await newIcon.contain(200, 200).getBase64Async(`image/${mimeType}`);
+          const stringData = await newIcon.contain(80, 80).getBase64Async(`image/${mimeType}`);
           resolve(
             stringData.split(',')[1]
           );
@@ -707,7 +722,6 @@ class WebOSTV extends Homey.Device {
         });
     });
   }
-
 }
 
 module.exports = WebOSTV;

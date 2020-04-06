@@ -658,8 +658,8 @@
             "type": "text",
             "required": false,
             "placeholder": {
-              "en": "Image URL or Base64 (optional)",
-              "nl": "Afbeelding URL of Base64 (optional)"
+              "en": "Image URL or Base64 (optional/might not be supported)",
+              "nl": "Afbeelding URL of Base64 (optioneel/wellicht niet ondersteund)"
             }
           },
           {
@@ -672,8 +672,8 @@
       {
         "id": "send_toast_with_image",
         "title": {
-          "en": "Send a toast message with Gallery image",
-          "nl": "Stuur een toast bericht met Gallerij afbeelding"
+          "en": "Send a toast message with Gallery image (might not be supported)",
+          "nl": "Stuur een toast bericht met Gallerij afbeelding (wellicht niet ondersteund)"
         },
         "droptoken": "image",
         "args": [

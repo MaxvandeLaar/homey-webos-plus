@@ -23,15 +23,8 @@ const fetch = require('node-fetch');
 const WebOSTV = require('./webos/WebOSTV');
 const {capabilities, store} = require('./webos/utils/constants');
 
-process.on('unhandledRejection', error => {
-  // Will print "unhandledRejection err is not defined"
-  // console.log('unhandledRejection', error);
-  console.log('unhandledRejection', error);
-});
-
 class WebosPlusDevice extends WebOSTV {
   onInit() {
-
     // Init LGTV
     this.construct();
 
@@ -240,11 +233,14 @@ class WebosPlusDevice extends WebOSTV {
       this.image.setStream(async (stream) => {
         const appImage = await fetch(app.imageLarge || app.image);
 
-        if (!appImage.ok)
+        if (!appImage.ok) {
+          this.error('appListener: Get image failed');
           throw new Error('Invalid Response');
+        }
 
         return appImage.body.pipe(stream);
       });
+
       this.image.update();
     });
   }
