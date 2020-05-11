@@ -38,6 +38,8 @@ class WebosPlusDriver extends Homey.Driver {
 
   initTriggers() {
     this._triggerChannelChanged = new Homey.FlowCardTriggerDevice('webos_channel_changed').register();
+    this._triggerVolumeMuted = new Homey.FlowCardTriggerDevice('webos_volume_muted').register();
+    this._triggerVolumeUnmuted = new Homey.FlowCardTriggerDevice('webos_volume_unmuted').register();
     this._triggerChannelChangedToList = new Homey.FlowCardTriggerDevice('webos_channel_changed_to_list')
       .registerRunListener(( args, state ) => {
         return Promise.resolve( args.channel.number && `${args.channel.number}` === `${state.newChannel}` );
@@ -109,6 +111,18 @@ class WebosPlusDriver extends Homey.Driver {
     this._triggerSoundOutputChangedTo
       .trigger(device, tokens, state)
       .catch(this.error);
+  }
+
+  triggerVolumeMuteChanged(device, tokens, state) {
+    if (state.muted) {
+      this._triggerVolumeMuted
+        .trigger(device, tokens, state)
+        .catch(this.error)
+    } else {
+      this._triggerVolumeUnmuted
+        .trigger(device, tokens, state)
+        .catch(this.error);
+    }
   }
 
   initConditions() {
@@ -450,7 +464,6 @@ class WebosPlusDriver extends Homey.Driver {
   }
 
   static _getInfo(url) {
-
     return new Promise((resolve, reject) => {
       http.get(url, (response) => {
         // Continuously update stream with data

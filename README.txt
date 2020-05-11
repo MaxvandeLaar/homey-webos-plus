@@ -38,6 +38,7 @@ Besides the basic capabilities you can create amazing flows:
   - On/Off
   - Channel change
   - Volume change
+  - (un)Muted
   - App/input change
   - Sound output change
   - Media controls

@@ -1,4 +1,10 @@
 {
+  "2.2.0": {
+    "en": "Added polling mechanism to check on/off state of tv"
+  },
+  "2.1.0": {
+    "en": "Added (un)muted trigger\nimproved on/off state check"
+  },
   "2.0.0": {
     "en": "Complete app rewrite\nImproved on/off state check"
   },

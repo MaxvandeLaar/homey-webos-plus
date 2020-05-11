@@ -28,6 +28,7 @@ class WebOSTV extends Homey.Device {
    */
   construct() {
     this.lgtv = null;
+    this.subsSet = false;
   }
 
   /**
@@ -38,7 +39,8 @@ class WebOSTV extends Homey.Device {
     this.log(`_connect: Connect to TV ${this.getSettings().ipAddress}`);
 
     this.lgtv = require('../lgtv2/lgtv2')({
-      url: `ws://${this.getSettings().ipAddress}:3000`
+      url: `ws://${this.getSettings().ipAddress}:3000`,
+      keyFile: `/userdata/com.maxvandelaar.webos-plus-keyfile-${this.getSettings().macAddress.replace(/:/g, '')}`
     });
 
     this.lgtv.on('prompt', () => {
@@ -52,6 +54,9 @@ class WebOSTV extends Homey.Device {
 
     this.lgtv.on('error', (err) => {
       this.error(err);
+      if (err.code === 'EHOSTUNREACH') {
+
+      }
     });
 
     this.lgtv.on('connect', () => {
@@ -103,7 +108,11 @@ class WebOSTV extends Homey.Device {
       this.log('_powerStateListener: Power state changed', result);
       if (error) {
         this.error(error);
+        handleOff();
         return;
+      }
+      if (!this.subsSet){
+        this.subsSet = true;
       }
 
       status = result.state ? result.state.toLowerCase() : '';
@@ -113,10 +122,9 @@ class WebOSTV extends Homey.Device {
       this.log(`_powerStateListener: ${timer ? 'Reset' : 'Set'} timeout to ${this.getSettings().powerStateTimeout || 2000} ms and check the state`);
       timer = setTimeout(() => {
         this.log(`_powerStateListener: Called timeout`, status, processing);
-        let tvSetTo = null;
 
         //Screen saver(?) should tv be turned on?
-        if ((status === 'active' || status === 'screen saver' && !processing) ||
+        if (((status === 'active' || status === 'screen saver' || status === 'screen off') && !processing) ||
           (processing &&
             (
               processing.includes('on') ||
@@ -126,11 +134,10 @@ class WebOSTV extends Homey.Device {
             )
           )
         ) {
-          tvSetTo = true;
           handleOn();
         }
 
-        if (status !== 'active' ||
+        if ((!processing && status !== 'active' && status !== 'screen off') ||
           (processing && (
               processing.includes('standby') ||
               processing.includes('suspend') ||
@@ -138,7 +145,6 @@ class WebOSTV extends Homey.Device {
             )
           )
         ) {
-          tvSetTo = false;
           handleOff();
         }
 
@@ -161,6 +167,9 @@ class WebOSTV extends Homey.Device {
       if (error) {
         this.error(`_volumeListener: ${endpoint} with result:`, result);
         return;
+      }
+      if (!this.subsSet){
+        this.subsSet = true;
       }
 
       if (result.changed && result.changed.indexOf('volume') !== -1) {
@@ -187,6 +196,9 @@ class WebOSTV extends Homey.Device {
         this.error(`_appListener: ${endpoint} with result:`, result);
         return;
       }
+      if (!this.subsSet){
+        this.subsSet = true;
+      }
       this.log(`_appListener: App/input changed to ${result.appId}`);
       handleChange(result.appId)
     });
@@ -205,6 +217,9 @@ class WebOSTV extends Homey.Device {
         this.error(`_soundOutputListener: ${endpoint} with result:`, result);
         return;
       }
+      if (!this.subsSet){
+        this.subsSet = true;
+      }
       this.log(`_soundOutputListener: Sound output changed to ${result.soundOutput}`);
       handleChange(result.soundOutput);
     });
@@ -222,6 +237,9 @@ class WebOSTV extends Homey.Device {
       if (error) {
         this.error(`_channelListener: ${endpoint} with result:`, result);
         return;
+      }
+      if (!this.subsSet){
+        this.subsSet = true;
       }
       this.log(`_channelListener: Channel changed to ${result.channelNumber}`);
       handleChange(result);

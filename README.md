@@ -2,7 +2,7 @@
 With the WebOS Plus app combined with Homey you can control your LG TV from anywhere in the world.
 
 Main features:
-- No infrared! TV is completely controlled via ethernet
+- No infrared! TV is being completely controlled via ethernet
 - Stable on/off detection
 - WakeOnLan to turn the tv on (TV must be connected with ethernet cable)
 - Remote control button simulation to create amazing complex flows on your tv such as changing energy saving when playing music!
@@ -66,6 +66,7 @@ Besides the basic capabilities you can create amazing flows:
   - On/Off
   - Channel change
   - Volume change
+  - Mute change
   - App/input change
   - Sound output change
   - Media controls

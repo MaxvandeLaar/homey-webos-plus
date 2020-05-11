@@ -39,6 +39,7 @@ Naast de basis capabilities kan je mooie flows maken:
   - Aan/uit
   - Kanaal veranderd
   - Volume veranderd
+  - (un)Muted
   - App/input veranderd
   - Geluidsuitgang veranderd
   - Media knoppen

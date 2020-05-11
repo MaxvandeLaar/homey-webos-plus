@@ -22,6 +22,7 @@ const Homey = require('homey');
 const fetch = require('node-fetch');
 const WebOSTV = require('./webos/WebOSTV');
 const {capabilities, store} = require('./webos/utils/constants');
+const net = require('net');
 
 class WebosPlusDevice extends WebOSTV {
   onInit() {
@@ -40,8 +41,9 @@ class WebosPlusDevice extends WebOSTV {
     this._driver = this.getDriver();
     this._driver.ready(async () => {
       this.log('onInit: Device Ready!');
-      this.initDevice();
       this._connect();
+      await this.registerCapabilities().catch(this.error);
+      this.initDevice();
     });
   }
 
@@ -81,10 +83,17 @@ class WebosPlusDevice extends WebOSTV {
    * @returns {Promise<void>}
    */
   async initDevice() {
-    await this.registerCapabilities().catch(this.error);
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+    if (this.getSettings().usePoll) {
+      this.poll();
+    }
     this.lgtv.on('connect', () => {
+      if (!this.getSettings().usePoll) {
+        this.powerStateListener();
+      }
       this.setCapabilityValue(capabilities.onOff, true);
-      this.powerStateListener();
       this.volumeListener();
       this.appListener();
       this.soundOutputListener();
@@ -92,6 +101,11 @@ class WebosPlusDevice extends WebOSTV {
     });
     this.lgtv.on('close', () => {
       this.setCapabilityValue(capabilities.onOff, false);
+    });
+    this.lgtv.on('error', (error) => {
+      if (error.code === 'EHOSTUNREACH') {
+        this.setCapabilityValue(capabilities.onOff, false);
+      }
     });
   }
 
@@ -154,12 +168,77 @@ class WebosPlusDevice extends WebOSTV {
     });
   }
 
+  onSettings(oldSettings, newSettings, changedKeys) {
+    if (oldSettings.usePoll !== newSettings.usePoll){
+      this.lgtv.disconnect();
+      this.construct();
+      this._connect();
+      this.initDevice();
+    }
+    if (newSettings.usePoll) {
+      this.poll();
+    }
+    return Promise.resolve(true);
+  }
+
+  poll() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+
+    this.pollInterval = setInterval(() => {
+      const client = new net.Socket();
+      const cancel = setTimeout(() => {
+        if (this.getCapabilityValue(capabilities.onOff)){
+          this.setCapabilityValue(capabilities.onOff, false);
+        }
+        client.destroy();
+      }, this.getSettings().pollTimeout * 1000);
+
+      client.on('error', (error) => {
+        if (this.getCapabilityValue(capabilities.onOff)){
+          this.setCapabilityValue(capabilities.onOff, false);
+        }
+        this.error(error);
+        clearTimeout(cancel);
+        client.destroy();
+      });
+
+      client.connect(3000, this.getSettings().ipAddress, () => {
+        if (!this.getCapabilityValue(capabilities.onOff)) {
+          this.setCapabilityValue(capabilities.onOff, true);
+          if (!this.subsSet) {
+            this.lgtv.disconnect();
+            this.construct();
+            this._connect();
+            this.initDevice();
+          }
+        }
+        clearTimeout(cancel);
+        client.destroy();
+      });
+    }, this.getSettings().pollInterval * 1000);
+  }
+
+  checkOnOff(value) {
+    if (value === null || value === undefined || value === '') {
+      this.setCapabilityValue(capabilities.onOff, false);
+      return false;
+    } else {
+      this.setCapabilityValue(capabilities.onOff, true);
+      return true;
+    }
+  }
+
   /**
    * Listen for changes in volume
    */
   volumeListener() {
     this.log(`volumeListener: Called`);
     this._volumeListener((newVolume) => {
+      if (!this.checkOnOff(newVolume)) {
+        return;
+      }
       const currentVolume = this.getCapabilityValue(capabilities.volumeSet);
       this.log(`volumeListener: Volume changed from ${currentVolume} to ${newVolume}`);
       if (currentVolume !== newVolume) {
@@ -167,12 +246,16 @@ class WebosPlusDevice extends WebOSTV {
         this.setCapabilityValue(capabilities.volumeSet, newVolume);
       }
     }, (newMutedValue) => {
+      if (!this.checkOnOff(newMutedValue)) {
+        return;
+      }
       const currentMute = this.getCapabilityValue(capabilities.volumeMute);
       this.log(`volumeListener: Mute changed from ${currentMute} to ${newMutedValue}`);
       if (currentMute !== newMutedValue) {
         this.log(`volumeListener: Capability ${capabilities.volumeMute} to ${newMutedValue}`);
         this.setCapabilityValue(capabilities.volumeMute, newMutedValue)
           .catch(this.error);
+        this._driver.triggerVolumeMuteChanged(this, {}, {muted: newMutedValue});
       }
     });
   }
@@ -185,6 +268,10 @@ class WebosPlusDevice extends WebOSTV {
     this._appListener(async (newAppId) => {
       const oldAppId = this.getStoreValue(store.currentApp);
       this.log(`appListener: App/input changed from ${oldAppId} to ${newAppId}`);
+      if (!this.checkOnOff(newAppId)) {
+        return;
+      }
+
       if (newAppId !== oldAppId) {
         this.log(`appListener: Store ${store.currentApp} set to ${newAppId}`);
         this.setStoreValue(store.currentApp, newAppId);
@@ -251,6 +338,10 @@ class WebosPlusDevice extends WebOSTV {
   soundOutputListener() {
     this.log(`soundOutputListener: Called`);
     this._soundOutputListener((newSoundOutput) => {
+      if (!this.checkOnOff(newSoundOutput)) {
+        return;
+      }
+
       const oldSoundOutput = this.getStoreValue(store.currentSoundOutput);
       this.log(`soundOutputListener: Sound output changed from ${oldSoundOutput} to ${newSoundOutput}`);
 
@@ -276,6 +367,9 @@ class WebosPlusDevice extends WebOSTV {
   channelListener() {
     this.log(`channelListener: Called`);
     this._channelListener((newChannel) => {
+      if (!this.checkOnOff(newChannel)) {
+        return;
+      }
       const oldChannel = this.getStoreValue(store.currentChannel);
       this.log(`channelListener: Channel changed from ${oldChannel} to ${newChannel.channelName}`);
 
@@ -333,7 +427,7 @@ class WebosPlusDevice extends WebOSTV {
     this.log(`volumeSet: Called`, value);
     this.log(`volumeSet: Try to set the volume to ${value}`);
     const newVolume = await this._volumeSet(value).catch(this.error);
-    if (newVolume){
+    if (newVolume) {
       this.log(`volumeSet: Volume set. Set capability ${capabilities.volumeSet} to ${value}`);
       this.setCapabilityValue(capabilities.volumeSet, value);
     }
@@ -395,6 +489,7 @@ class WebosPlusDevice extends WebOSTV {
   async filteredAppList(query = '') {
     const device = this;
     this.log(`filteredAppList: Called`, query);
+
     function _filter(list, query) {
       device.log(`filteredAppList: Filter list with query '${query}'`, list);
       let tmp = list.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
@@ -422,6 +517,7 @@ class WebosPlusDevice extends WebOSTV {
   async filteredChannelList(query = '') {
     this.log(`filteredChannelList: Called`, query);
     const device = this;
+
     function _filter(list, query) {
       device.log(`filteredChannelList: Filter list with query '${query}'`, list);
       let tmp = list.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));

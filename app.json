@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
@@ -190,6 +190,34 @@
               "nl": "Huidige kanaal"
             },
             "example": 2
+          }
+        ]
+      },
+      {
+        "id": "webos_volume_muted",
+        "title": {
+          "en": "Volume muted",
+          "nl": "Volume gemute"
+        },
+        "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
+        "id": "webos_volume_unmuted",
+        "title": {
+          "en": "Volume unmuted",
+          "nl": "Volume geunmute"
+        },
+        "args": [
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
           }
         ]
       },
@@ -1174,6 +1202,57 @@
               "units": {
                 "en": "miliseconds",
                 "nl": "miliseconden"
+              }
+            },
+            {
+              "id": "usePoll",
+              "type": "checkbox",
+              "label": {
+                "en": "Use polling instead of on/off listener",
+                "nl": "Gebruik polling i.p.v. aan/uit check"
+              },
+              "hint": {
+                "en": "When enabling this, the listener won't be used and you'r tv might seem off for a short period until the first poll ran.",
+                "nl": "Wanneer dit aangezet wordt, wordt er geen gebruik gemaakt van de standaard check. De tv kan tijdelijk als 'uit' aangegeven worden totdat de eerste pol heeft gelopen."
+              },
+              "value": false
+            },
+            {
+              "id": "pollInterval",
+              "type": "number",
+              "label": {
+                "en": "Poll interval on/off check",
+                "nl": "Poll interval aan/uit check"
+              },
+              "hint": {
+                "en": "Interval used between latest on/off check. Only change this is you are experiencing issues when turning your tv on/off with the remote. Higher number increases reliability, lower decreases.",
+                "nl": "De interval geeft de tijd aan tussen aan/uit checks. Wijzig dit alleen als je problemen ervaart wanneer je de tv aan/uit doet met de afstandsbediening. Een hogere interval is betrouwbaarder, een lage interval maakt het minder betrouwbaar."
+              },
+              "value": 10,
+              "min": 5,
+              "max": 3600,
+              "units": {
+                "en": "seconds",
+                "nl": "seconden"
+              }
+            },
+            {
+              "id": "pollTimeout",
+              "type": "number",
+              "label": {
+                "en": "Poll timeout on/off check",
+                "nl": "Poll timeout aan/uit check"
+              },
+              "hint": {
+                "en": "After how many seconds give up on on/off check and assume tv is turned off. Keep it lower than the poll interval.",
+                "nl": "Na hoeveel seconden de aan/uit check moet opgeven en aan aannamen dat de tv uit is. Hou het onder de poll interval."
+              },
+              "value": 8,
+              "min": 0,
+              "max": 3600,
+              "units": {
+                "en": "seconds",
+                "nl": "seconden"
               }
             }
           ]
