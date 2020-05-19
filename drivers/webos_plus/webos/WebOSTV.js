@@ -135,9 +135,7 @@ class WebOSTV extends Homey.Device {
           )
         ) {
           handleOn();
-        }
-
-        if ((!processing && status !== 'active' && status !== 'screen off') ||
+        } else if ((!processing && status !== 'active' && status !== 'screen off') ||
           (processing && (
               processing.includes('standby') ||
               processing.includes('suspend') ||
