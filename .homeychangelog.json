@@ -1,4 +1,7 @@
 {
+  "2.2.1": {
+    "en": "Fixed bug that caused tv to be 'off' while it was actually on"
+  },
   "2.2.0": {
     "en": "Added polling mechanism to check on/off state of tv"
   },

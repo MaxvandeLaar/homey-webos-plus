@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
