@@ -55,7 +55,11 @@ class WebosPlusDevice extends WebOSTV {
 
   onDiscoveryAvailable(discoveryResult) {
     this.setAvailable();
-    if (this.getSettings().ipAddress !== discoveryResult.address) {
+    const ipAddress = this.getSettings().ipAddress;
+    if (this.getSettings().manualIpAddress === true && ipAddress !== '0.0.0.0'){
+      return Promise.resolve(true);
+    }
+    if (ipAddress !== discoveryResult.address) {
       this.setSettings({ipAddress: discoveryResult.address}).then(() => {
         this._connect();
       }).catch(this.error);
@@ -65,7 +69,11 @@ class WebosPlusDevice extends WebOSTV {
 
   onDiscoveryAddressChanged(discoveryResult) {
     this.setAvailable();
-    if (this.getSettings().ipAddress !== discoveryResult.address) {
+    const ipAddress = this.getSettings().ipAddress;
+    if (this.getSettings().manualIpAddress === true && ipAddress !== '0.0.0.0'){
+      return Promise.resolve(true);
+    }
+    if (ipAddress !== discoveryResult.address) {
       this.setSettings({ipAddress: discoveryResult.address}).then(() => {
         this._connect();
       }).catch(this.error);
@@ -426,11 +434,11 @@ class WebosPlusDevice extends WebOSTV {
   async volumeSet(value) {
     this.log(`volumeSet: Called`, value);
     this.log(`volumeSet: Try to set the volume to ${value}`);
-    const newVolume = await this._volumeSet(value).catch(this.error);
-    if (newVolume) {
-      this.log(`volumeSet: Volume set. Set capability ${capabilities.volumeSet} to ${value}`);
-      this.setCapabilityValue(capabilities.volumeSet, value);
-    }
+    // const newVolume = await this._volumeSet(value).catch(this.error);
+    // if (newVolume) {
+    //   this.log(`volumeSet: Volume set. Set capability ${capabilities.volumeSet} to ${value}`);
+    //   this.setCapabilityValue(capabilities.volumeSet, value);
+    // }
   }
 
   /**
@@ -509,6 +517,34 @@ class WebosPlusDevice extends WebOSTV {
   }
 
   /**
+   * Get all external inputs with filter option by label
+   *
+   * @param {string} query Search value
+   * @returns {Promise<*[]>}
+   */
+  async filteredExternalInputList(query = '') {
+    const device = this;
+    this.log(`filteredExternalInputList: Called`, query);
+
+    function _filter(list, query) {
+      device.log(`filteredExternalInputList: Filter list with query '${query}'`, list);
+      let tmp = list.filter(input => input.name.toLowerCase().includes(query.toLowerCase()));
+      device.log(`filteredExternalInputList: Filter sort result by label`, tmp);
+      return tmp.sort((a, b) => {
+        return a.name.toLowerCase() > b.name.toLowerCase() ? 1 : b.name.toLowerCase() > a.name.toLowerCase() ? -1 : 0;
+      });
+    }
+
+    this.log(`filteredExternalInputList: try to get all external inputs`);
+    const list = await this._externalInputList().catch(this.error);
+    if (!list) {
+      this.error(`filteredExternalInputList: No external inputs found! Return empty array`);
+      return [];
+    }
+    return _filter(list, query);
+  }
+
+  /**
    * Get all channels with filter option by name or number
    *
    * @param {string} query Search value
@@ -521,7 +557,7 @@ class WebosPlusDevice extends WebOSTV {
     function _filter(list, query) {
       device.log(`filteredChannelList: Filter list with query '${query}'`, list);
       let tmp = list.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
-      device.log(`filteredAppList: Filter sort result by number`, tmp);
+      device.log(`filteredChannelList: Filter sort result by number`, tmp);
       return tmp.sort((a, b) => {
         const numA = parseInt(a.number);
         const numB = parseInt(b.number);

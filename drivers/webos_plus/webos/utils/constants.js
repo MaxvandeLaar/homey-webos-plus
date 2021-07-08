@@ -15,30 +15,56 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+// https://github.com/ConnectSDK/Connect-SDK-iOS-Core/blob/894c28c8c4386e0c750b950bff549d00c7c4d8b1/Services/WebOSTVService.m
 
 const endpoints = {
   powerState: 'ssap://com.webos.service.tvpower/power/getPowerState',
   inputSocket: 'ssap://com.webos.service.networkinput/getPointerInputSocket',
   system: {
-    off: 'ssap://system/turnOff'
+    off: 'ssap://system/turnOff',
+    launcher: {
+      browser: 'sapp://system.launcher/open', // todo: implement launch browser
+      launch: 'ssap://system.launcher/launch', // todo: implement launch apps
+      state: 'ssap://system.launcher/getAppState', // todo: implement get App state
+      close: 'ssap://system.launcher/close' // todo: implement close app
+    },
+    inputs: {
+      list: 'ssap://tv/getExternalInputList',
+      switch: 'ssap://tv/switchInput'
+    }
   },
   volume: {
     get: 'ssap://audio/getVolume',
     set: 'ssap://audio/setVolume',
     mute: 'ssap://audio/setMute',
+    getMute: 'ssap://audio/getMute', // todo: implement
     up: 'ssap://audio/volumeUp',
     down: 'ssap://audio/volumeDown'
   },
   media: {
     play: 'ssap://media.controls/play',
     pause: 'ssap://media.controls/pause',
+    stop: 'ssap://media.controls/stop', //todo: implement?
     fastForward: 'ssap://media.controls/fastForward',
-    rewind: 'ssap://media.controls/rewind'
+    rewind: 'ssap://media.controls/rewind',
+    open: 'ssap://media.viewer/open' // todo: investigate what this is and how to implement
   },
   app: {
     launch: 'ssap://com.webos.applicationManager/launch',
+    webapp: {
+      launch: 'ssap://webapp/launchWebApp', // todo: implement?
+      close: 'ssap://webapp/closeWebApp', // todo: implement?
+      connect: 'ssap://webapp/connectToApp', // todo: implement?
+      removePin: 'ssap://webapp/removePinnedWebApp', // todo: implement?
+      isPinned: 'ssap://webapp/isWebAppPinned', // todo: implement?
+      pin: 'ssap://webapp/pinWebApp' // todo: implement?
+    },
     getForegroundApp: 'ssap://com.webos.applicationManager/getForegroundAppInfo',
-    getAll: 'ssap://com.webos.applicationManager/listLaunchPoints'
+    getAll: 'ssap://com.webos.applicationManager/listLaunchPoints',
+    list: 'ssap://com.webos.applicationManager/listApps'
+  },
+  pairing: {
+    setPin: 'ssap://pairing/setPin' // todo: implement?
   },
   channel: {
     current: 'ssap://tv/getCurrentChannel',

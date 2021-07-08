@@ -1,6 +1,6 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "compatibility": ">=3.1.0",
   "sdk": 2,
   "name": {
@@ -10,7 +10,7 @@
   "brandColor": "#A50034",
   "description": {
     "en": "Improved WebOS integration",
-    "nl": "Verbeterde WebOS integratie toe"
+    "nl": "Verbeterde WebOS integratie"
   },
   "tags": {
     "en": [
@@ -52,9 +52,20 @@
       }
     ]
   },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "maxvdlaar"
+      }
+    }
+  },
   "source": "https://github.com/MaxvandeLaar/homey-webos-plus",
   "homepage": "https://github.com/MaxvandeLaar/homey-webos-plus",
   "support": "https://github.com/MaxvandeLaar/homey-webos-plus/issues",
+  "bugs": {
+    "url": "https://github.com/MaxvandeLaar/homey-webos-plus/issues"
+  },
+  "homeyCommunityTopicId": 15007,
   "discovery": {
     "webos": {
       "type": "ssdp",
@@ -830,8 +841,8 @@
       {
         "id": "launch_app",
         "title": {
-          "en": "Launch app or input",
-          "nl": "Open app or input"
+          "en": "Launch app",
+          "nl": "Open app"
         },
         "args": [
           {
@@ -1153,6 +1164,28 @@
             "filter": "driver_id=webos_plus"
           }
         ]
+      },
+      {
+        "id": "switch_input",
+        "title": {
+          "en": "Switch to external input",
+          "nl": "Verander naar externe input"
+        },
+        "args": [
+          {
+            "name": "input",
+            "type": "autocomplete",
+            "placeholder": {
+              "en": "NOTE: TV must be turned on to select",
+              "nl": "LET OP: TV moet aan zijn om te selecteren"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
       }
     ]
   },
@@ -1254,6 +1287,23 @@
                 "en": "seconds",
                 "nl": "seconden"
               }
+            },
+            {
+              "id": "manualIpAddress",
+              "type": "checkbox",
+              "label": {
+                "en": "Set the IP address manual",
+                "nl": "Zet het IP adres handmatig"
+              },
+              "value": false
+            }, {
+              "id": "ipAddress",
+              "type": "text",
+              "label": {
+                "en": "The IP address of the TV",
+                "nl": "Het IP adres van de TV"
+              },
+              "value": "0.0.0.0"
             }
           ]
         }

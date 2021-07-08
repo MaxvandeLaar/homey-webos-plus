@@ -159,6 +159,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionSendToastWithImage();
     this._actionChangeSoundOutput = new Homey.FlowCardAction('change_sound_output');
     this.actionChangeSoundOutput();
+    this._actionSwitchInput = new Homey.FlowCardAction('switch_input');
+    this.actionSwitchInput();
   }
 
   conditionSoundOutput() {
@@ -425,6 +427,29 @@ class WebosPlusDriver extends Homey.Driver {
         const device = args.webosDevice;
         return new Promise(async (resolve) => {
           const apps = await device.filteredAppList(query);
+          resolve(apps);
+        });
+      });
+  }
+
+  actionSwitchInput() {
+    this._actionSwitchInput
+      .registerRunListener((args, state) => {
+        const device = args.webosDevice;
+        return new Promise((resolve, reject) => {
+          device._switchInput(args.input.id).then(() => {
+            resolve(true);
+          }, (_error) => {
+            reject(_error);
+          });
+        });
+      })
+      .register()
+      .getArgument('input')
+      .registerAutocompleteListener((query, args) => {
+        const device = args.webosDevice;
+        return new Promise(async (resolve) => {
+          const apps = await device.filteredExternalInputList(query);
           resolve(apps);
         });
       });

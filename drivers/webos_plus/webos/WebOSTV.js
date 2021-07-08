@@ -525,17 +525,17 @@ class WebOSTV extends Homey.Device {
    *
    * @returns {Promise<*[]>} App/inputs list
    */
-  _appList() {
-    this.log(`_appList: Send request to retrieve all apps/inputs`);
+  _appListLaunchPoints() {
+    this.log(`_appListLaunchPoints: Send request to retrieve all launch points`);
     return new Promise((resolve, reject) => {
       this.lgtv.request(endpoints.app.getAll, (err, res) => {
         const {endpoint, error, result} = this._handleResponse(err, res, endpoints.app.getAll);
         if (error) {
-          this.error(`_appList: ${endpoint} with result:`, result);
+          this.error(`_appListLaunchPoints: ${endpoint} with result:`, result);
           return reject(error);
         }
 
-        this.log(`_appList: Retrieved all apps/inputs successfully`);
+        this.log(`_appListLaunchPoints: Retrieved all launch points successfully`);
         const apps = result.launchPoints.map(point => {
           return {
             name: point.title,
@@ -544,7 +544,32 @@ class WebOSTV extends Homey.Device {
             imageLarge: point.largeIcon
           }
         });
-        this.log(`_appList: Mapped all apps/inputs and resolve`);
+        this.log(`_appListLaunchPoints: Mapped all launchp oints and resolve`);
+        return resolve(apps);
+      })
+    });
+  }
+
+  _appList() {
+    this.log(`_appList: Send request to retrieve all apps`);
+    return new Promise((resolve, reject) => {
+      this.lgtv.request(endpoints.app.list, (err, res) => {
+        const {endpoint, error, result} = this._handleResponse(err, res, endpoints.app.getAll);
+        if (error) {
+          this.error(`_appList: ${endpoint} with result:`, result);
+          return reject(error);
+        }
+
+        this.log(`_appList: Retrieved all apps successfully`);
+        const apps = result.apps.map(point => {
+          return {
+            name: point.title,
+            image: point.miniicon,
+            id: point.id,
+            imageLarge: point.icon
+          }
+        });
+        this.log(`_appList: Mapped all apps and resolve`);
         return resolve(apps);
       })
     });
@@ -736,6 +761,59 @@ class WebOSTV extends Homey.Device {
           this.error('_resizeIcon: ', err);
           reject(err);
         });
+    });
+  }
+
+  /**
+   * Get the current external inputs
+   *
+   * @returns {Promise<*>}
+   */
+  _externalInputList() {
+    this.log(`_externalInputList: Send request to retrieve all external inputs`);
+    return new Promise((resolve, reject) => {
+      this.lgtv.request(endpoints.system.inputs.list, (err, res) => {
+        const {endpoint, error, result} = this._handleResponse(err, res, endpoints.system.inputs.list);
+        if (error) {
+          this.error(`_externalInputList: ${endpoint} with result:`, result);
+          return reject(error);
+        }
+
+        this.log(`_externalInputList: Retrieved all external inputs successfully`);
+        const inputs = result.devices.map(input => {
+          return {
+            name: input.label,
+            image: input.icon,
+            port: input.port,
+            id: input.id,
+            appId: input.appId,
+            imageLarge: input.icon
+          }
+        });
+        this.log(`_externalInputList: Mapped all external inputs and resolve`);
+        return resolve(inputs);
+      })
+    });
+  }
+
+  /**
+   * Switch to external input
+   *
+   * @param {string} inputId
+   * @returns {Promise<*>}
+   */
+  _switchInput(inputId) {
+    this.log(`_switchInput: Send request to change to external input ${inputId}`);
+    return new Promise((resolve, reject) => {
+      this.lgtv.request(endpoints.system.inputs.switch, {inputId}, (err, res) => {
+        const {endpoint, error, result} = this._handleResponse(err, res, endpoints.system.inputs.switch);
+        if (error) {
+          this.error(`_switchInput: ${endpoint} with result:`, result);
+          return reject(error);
+        }
+        this.log(`_switchInput: Successfully changed the external input to ${inputId}`);
+        return resolve(result);
+      });
     });
   }
 }

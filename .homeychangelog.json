@@ -1,6 +1,10 @@
 {
+  "2.3.0": {
+    "en": "Added new endpoints for external inputs and added the possibility to set the IP address manually."
+  },
   "2.2.1": {
-    "en": "Fixed bug that caused tv to be 'off' while it was actually on"
+    "en": "Fixed bug that caused tv to be 'off' while it was actually on",
+    "nl": "Fixed bug that caused tv to be 'off' while it was actually on"
   },
   "2.2.0": {
     "en": "Added polling mechanism to check on/off state of tv"
@@ -27,6 +31,6 @@
     "en": "Toast message variables for the icon no longer required.\nRemoved icon extension variable as 'tiff' works for most image types.\nAccept urls as icon for toast messages"
   },
   "1.0.0": {
-    "en": "Inital app release"
+    "en": "Initial app release"
   }
 }

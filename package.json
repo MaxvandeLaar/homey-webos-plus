@@ -1,6 +1,6 @@
 {
   "name": "com.maxvandelaar.homey-webos",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Add improved support for LG tv via WebOS",
   "main": "app.js",
   "scripts": {
