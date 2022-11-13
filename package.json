@@ -27,7 +27,7 @@
     "homey": "^2.3.1",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11",
+    "webpack-cli": "^3.3.12",
     "webpack-obfuscator": "^0.27.2",
     "webpack-shell-plugin": "^0.5.0"
   }
