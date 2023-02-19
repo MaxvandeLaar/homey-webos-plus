@@ -36,10 +36,10 @@ class WebOSTV extends Homey.Device {
    */
   _connect() {
     this.setAvailable();
-    this.log(`_connect: Connect to TV ${this.getSettings().ipAddress}`);
+    this.log(`_connect: Connect to TV wss://${this.getSettings().ipAddress}:3001`);
 
     this.lgtv = require('../lgtv2/lgtv2')({
-      url: `ws://${this.getSettings().ipAddress}:3000`,
+      url: `wss://${this.getSettings().ipAddress}:3001`,
       keyFile: `/userdata/com.maxvandelaar.webos-plus-keyfile-${this.getSettings().macAddress.replace(/:/g, '')}`
     });
 
