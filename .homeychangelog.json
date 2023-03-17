@@ -1,4 +1,10 @@
 {
+  "3.0.1": {
+    "en": "Use secure websocket connection with help of Paul Molensky."
+  },
+  "3.0.0": {
+    "en": "Migrated the app to SDK3 with the help of Dominic Vink and fixed volume and media image bug."
+  },
   "2.3.0": {
     "en": "Added new endpoints for external inputs and added the possibility to set the IP address manually."
   },

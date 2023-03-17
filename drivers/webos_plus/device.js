@@ -22,6 +22,11 @@ const fetch = require('node-fetch');
 const WebOSTV = require('./webos/WebOSTV');
 const {capabilities, store} = require('./webos/utils/constants');
 const net = require('net');
+const https = require('https');
+
+const unsecureHttpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+});
 
 class WebosPlusDevice extends WebOSTV {
   async onInit() {
@@ -321,7 +326,8 @@ class WebosPlusDevice extends WebOSTV {
 
       this.log(`appListener: Set image for '${newAppId}' ${app.name} (${app.imageLarge || app.image})`);
       this.image.setStream(async (stream) => {
-        const appImage = await fetch(app.imageLarge || app.image);
+
+        const appImage = await fetch(app.imageLarge || app.image, {method: 'get', agent: unsecureHttpsAgent}).catch(console.error);
 
         if (!appImage.ok) {
           this.error('appListener: Get image failed');
