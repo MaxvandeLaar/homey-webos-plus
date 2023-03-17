@@ -21,25 +21,20 @@
 const Homey = require('homey');
 const fetch = require('node-fetch');
 const WebOSTV = require('./webos/WebOSTV');
-const {capabilities, store} = require('./webos/utils/constants');
+const { capabilities, store } = require('./webos/utils/constants');
 const net = require('net');
 
 class WebosPlusDevice extends WebOSTV {
-  onInit() {
+  async onInit () {
     // Init LGTV
     this.construct();
 
     // Initialise media screen image
-    this.image = new Homey.Image();
-    this.image.setUrl(null);
-    this.image.register()
-      .then(() => {
-        return this.setAlbumArtImage(this.image);
-      })
-      .catch(this.error);
-
-    this._driver = this.getDriver();
-    this._driver.ready(async () => {
+    this.image = await this.homey.images.createImage();
+    this.image.setUrl(null)
+    this.setAlbumArtImage(this.image)
+    this._driver = this.homey.drivers.getDriver('webos_plus');
+    this._driver.initReady(async () => {
       this.log('onInit: Device Ready!');
       this._connect();
       await this.registerCapabilities().catch(this.error);
@@ -47,41 +42,41 @@ class WebosPlusDevice extends WebOSTV {
     });
   }
 
-  onDiscoveryResult(discoveryResult) {
+  onDiscoveryResult (discoveryResult) {
     this.setAvailable();
     discoveryResult.id = discoveryResult.id.replace(/uuid:/g, '');
     return discoveryResult.id === this.getData().id;
   }
 
-  onDiscoveryAvailable(discoveryResult) {
+  onDiscoveryAvailable (discoveryResult) {
     this.setAvailable();
     const ipAddress = this.getSettings().ipAddress;
-    if (this.getSettings().manualIpAddress === true && ipAddress !== '0.0.0.0'){
+    if (this.getSettings().manualIpAddress === true && ipAddress !== '0.0.0.0') {
       return Promise.resolve(true);
     }
     if (ipAddress !== discoveryResult.address) {
-      this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+      this.setSettings({ ipAddress: discoveryResult.address }).then(() => {
         this._connect();
       }).catch(this.error);
     }
     return Promise.resolve(true);
   }
 
-  onDiscoveryAddressChanged(discoveryResult) {
+  onDiscoveryAddressChanged (discoveryResult) {
     this.setAvailable();
     const ipAddress = this.getSettings().ipAddress;
-    if (this.getSettings().manualIpAddress === true && ipAddress !== '0.0.0.0'){
+    if (this.getSettings().manualIpAddress === true && ipAddress !== '0.0.0.0') {
       return Promise.resolve(true);
     }
     if (ipAddress !== discoveryResult.address) {
-      this.setSettings({ipAddress: discoveryResult.address}).then(() => {
+      this.setSettings({ ipAddress: discoveryResult.address }).then(() => {
         this._connect();
       }).catch(this.error);
     }
     return Promise.resolve(true);
   }
 
-  onDiscoveryLastSeenChanged(discoveryResult) {
+  onDiscoveryLastSeenChanged (discoveryResult) {
     this.setAvailable();
     return Promise.resolve(true);
   }
@@ -90,7 +85,7 @@ class WebosPlusDevice extends WebOSTV {
    * Initialise the WebOS Tv
    * @returns {Promise<void>}
    */
-  async initDevice() {
+  async initDevice () {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
     }
@@ -122,7 +117,7 @@ class WebosPlusDevice extends WebOSTV {
    *
    * @returns {Promise<void>}
    */
-  async registerCapabilities() {
+  async registerCapabilities () {
     // Used for displaying the current app/input
     if (!this.hasCapability(capabilities.speakerArtist)) {
       await this.addCapability(capabilities.speakerArtist);
@@ -165,7 +160,7 @@ class WebosPlusDevice extends WebOSTV {
   /**
    * Listen for changes in on/off state
    */
-  powerStateListener() {
+  powerStateListener () {
     this.log(`powerStateListener: Called`);
     this._powerStateListener(() => {
       this.log(`powerStateListener: received on`);
@@ -176,8 +171,8 @@ class WebosPlusDevice extends WebOSTV {
     });
   }
 
-  onSettings(oldSettings, newSettings, changedKeys) {
-    if (oldSettings.usePoll !== newSettings.usePoll){
+  onSettings (oldSettings, newSettings, changedKeys) {
+    if (oldSettings.usePoll !== newSettings.usePoll) {
       this.lgtv.disconnect();
       this.construct();
       this._connect();
@@ -189,7 +184,7 @@ class WebosPlusDevice extends WebOSTV {
     return Promise.resolve(true);
   }
 
-  poll() {
+  poll () {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
     }
@@ -197,14 +192,14 @@ class WebosPlusDevice extends WebOSTV {
     this.pollInterval = setInterval(() => {
       const client = new net.Socket();
       const cancel = setTimeout(() => {
-        if (this.getCapabilityValue(capabilities.onOff)){
+        if (this.getCapabilityValue(capabilities.onOff)) {
           this.setCapabilityValue(capabilities.onOff, false);
         }
         client.destroy();
       }, this.getSettings().pollTimeout * 1000);
 
       client.on('error', (error) => {
-        if (this.getCapabilityValue(capabilities.onOff)){
+        if (this.getCapabilityValue(capabilities.onOff)) {
           this.setCapabilityValue(capabilities.onOff, false);
         }
         this.error(error);
@@ -228,7 +223,7 @@ class WebosPlusDevice extends WebOSTV {
     }, this.getSettings().pollInterval * 1000);
   }
 
-  checkOnOff(value) {
+  checkOnOff (value) {
     if (value === null || value === undefined || value === '') {
       this.setCapabilityValue(capabilities.onOff, false);
       return false;
@@ -241,7 +236,7 @@ class WebosPlusDevice extends WebOSTV {
   /**
    * Listen for changes in volume
    */
-  volumeListener() {
+  volumeListener () {
     this.log(`volumeListener: Called`);
     this._volumeListener((newVolume) => {
       if (!this.checkOnOff(newVolume)) {
@@ -263,7 +258,7 @@ class WebosPlusDevice extends WebOSTV {
         this.log(`volumeListener: Capability ${capabilities.volumeMute} to ${newMutedValue}`);
         this.setCapabilityValue(capabilities.volumeMute, newMutedValue)
           .catch(this.error);
-        this._driver.triggerVolumeMuteChanged(this, {}, {muted: newMutedValue});
+        this._driver.triggerVolumeMuteChanged(this, {}, { muted: newMutedValue });
       }
     });
   }
@@ -271,7 +266,7 @@ class WebosPlusDevice extends WebOSTV {
   /**
    * Listen for changes in app/input
    */
-  appListener() {
+  appListener () {
     this.log(`appListener: Called`);
     this._appListener(async (newAppId) => {
       const oldAppId = this.getStoreValue(store.currentApp);
@@ -343,7 +338,7 @@ class WebosPlusDevice extends WebOSTV {
   /**
    * Listen for changes in sound output
    */
-  soundOutputListener() {
+  soundOutputListener () {
     this.log(`soundOutputListener: Called`);
     this._soundOutputListener((newSoundOutput) => {
       if (!this.checkOnOff(newSoundOutput)) {
@@ -372,7 +367,7 @@ class WebosPlusDevice extends WebOSTV {
   /**
    * Listen for changes in channel
    */
-  channelListener() {
+  channelListener () {
     this.log(`channelListener: Called`);
     this._channelListener((newChannel) => {
       if (!this.checkOnOff(newChannel)) {
@@ -406,7 +401,7 @@ class WebosPlusDevice extends WebOSTV {
    * @param {boolean} value Represents on|off with true|false
    * @returns {Promise<void>}
    */
-  async toggleOnOff(value) {
+  async toggleOnOff (value) {
     this.log(`toggleOnOff: Called`, value);
     if (value) {
       this.log(`toggleOnOff: Try to turn the tv on`);
@@ -431,7 +426,7 @@ class WebosPlusDevice extends WebOSTV {
    * @param {number} value Represents the volume value
    * @returns {Promise<void>}
    */
-  async volumeSet(value) {
+  async volumeSet (value) {
     this.log(`volumeSet: Called`, value);
     this.log(`volumeSet: Try to set the volume to ${value}`);
     // const newVolume = await this._volumeSet(value).catch(this.error);
@@ -447,7 +442,7 @@ class WebosPlusDevice extends WebOSTV {
    * @param value
    * @returns {Promise<void>}
    */
-  async volumeMute(value) {
+  async volumeMute (value) {
     this.log(`volumeMute: Called`, value);
     this.log(`volumeMute: Try to set mute to ${value}`);
     const response = await this._volumeMute(value);
@@ -462,7 +457,7 @@ class WebosPlusDevice extends WebOSTV {
    *
    * @returns {Promise<void>}
    */
-  async volumeUp() {
+  async volumeUp () {
     this.log(`volumeUp: Called`);
     const volume = this.getCapabilityValue(capabilities.volumeSet);
     this.log(`volumeUp: Current volume ${volume}. Try to increase the volume`);
@@ -477,7 +472,7 @@ class WebosPlusDevice extends WebOSTV {
    * Decrease volume by 1
    * @returns {Promise<void>}
    */
-  async volumeDown() {
+  async volumeDown () {
     this.log(`volumeDown: Called`);
     const volume = this.getCapabilityValue(capabilities.volumeSet);
     this.log(`volumeDown: Current volume ${volume}. Try to decrease the volume`);
@@ -494,11 +489,11 @@ class WebosPlusDevice extends WebOSTV {
    * @param {string} query Search value
    * @returns {Promise<*[]>}
    */
-  async filteredAppList(query = '') {
+  async filteredAppList (query = '') {
     const device = this;
     this.log(`filteredAppList: Called`, query);
 
-    function _filter(list, query) {
+    function _filter (list, query) {
       device.log(`filteredAppList: Filter list with query '${query}'`, list);
       let tmp = list.filter(app => app.name.toLowerCase().includes(query.toLowerCase()));
       device.log(`filteredAppList: Filter sort result by name`, tmp);
@@ -522,11 +517,11 @@ class WebosPlusDevice extends WebOSTV {
    * @param {string} query Search value
    * @returns {Promise<*[]>}
    */
-  async filteredExternalInputList(query = '') {
+  async filteredExternalInputList (query = '') {
     const device = this;
     this.log(`filteredExternalInputList: Called`, query);
 
-    function _filter(list, query) {
+    function _filter (list, query) {
       device.log(`filteredExternalInputList: Filter list with query '${query}'`, list);
       let tmp = list.filter(input => input.name.toLowerCase().includes(query.toLowerCase()));
       device.log(`filteredExternalInputList: Filter sort result by label`, tmp);
@@ -550,11 +545,11 @@ class WebosPlusDevice extends WebOSTV {
    * @param {string} query Search value
    * @returns {Promise<*[]>}
    */
-  async filteredChannelList(query = '') {
+  async filteredChannelList (query = '') {
     this.log(`filteredChannelList: Called`, query);
     const device = this;
 
-    function _filter(list, query) {
+    function _filter (list, query) {
       device.log(`filteredChannelList: Filter list with query '${query}'`, list);
       let tmp = list.filter(channel => channel.search.toLowerCase().includes(query.toLowerCase()));
       device.log(`filteredChannelList: Filter sort result by number`, tmp);
@@ -582,7 +577,7 @@ class WebosPlusDevice extends WebOSTV {
    * @returns {string}
    * @private
    */
-  _formatSpeakerTrack(number, name) {
+  _formatSpeakerTrack (number, name) {
     let track = number ? `${number}` : '';
 
     if (name) {

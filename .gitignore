@@ -103,3 +103,7 @@ dist
 
 build
 webos-plus.zip
+
+
+# Added by Homey CLI
+/.homeybuild/
