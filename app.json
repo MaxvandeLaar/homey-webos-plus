@@ -1,8 +1,8 @@
 {
   "id": "com.maxvandelaar.webos-plus",
-  "version": "2.3.0",
-  "compatibility": ">=3.1.0",
-  "sdk": 2,
+  "version": "3.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
   "name": {
     "en": "WebOS Plus",
     "nl": "WebOS Plus"
@@ -44,6 +44,8 @@
     "developers": [
       {
         "name": "Max van de Laar"
+      }, {
+        "name": "Dominic Vonk"
       }
     ],
     "translators": [
@@ -1311,10 +1313,10 @@
       "capabilities": [
         "onoff",
         "volume_set",
-        "channel_down",
         "channel_up",
-        "volume_down",
         "volume_up",
+        "channel_down",
+        "volume_down",
         "volume_mute"
       ],
       "capabilitiesOptions": {

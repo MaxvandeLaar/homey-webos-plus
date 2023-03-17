@@ -18,28 +18,23 @@
 
 'use strict';
 
-const Homey = require('homey');
 const fetch = require('node-fetch');
 const WebOSTV = require('./webos/WebOSTV');
 const {capabilities, store} = require('./webos/utils/constants');
 const net = require('net');
 
 class WebosPlusDevice extends WebOSTV {
-  onInit() {
+  async onInit() {
     // Init LGTV
     this.construct();
 
     // Initialise media screen image
-    this.image = new Homey.Image();
+    this.image = await this.homey.images.createImage();
     this.image.setUrl(null);
-    this.image.register()
-      .then(() => {
-        return this.setAlbumArtImage(this.image);
-      })
-      .catch(this.error);
+    this.setAlbumArtImage(this.image)
+    this._driver = this.homey.drivers.getDriver('webos_plus');
 
-    this._driver = this.getDriver();
-    this._driver.ready(async () => {
+    this._driver.initReady(async () => {
       this.log('onInit: Device Ready!');
       this._connect();
       await this.registerCapabilities().catch(this.error);
@@ -295,7 +290,7 @@ class WebosPlusDevice extends WebOSTV {
       }
 
       this.log(`appListener: Gather media screen information for ${newAppId}`);
-      const allApps = await this._appList().catch(this.error);
+      const allApps = await this._appListLaunchPoints().catch(this.error);
       if (!allApps) {
         this.error('appListener: No Apps/inputs found');
         return;
@@ -434,11 +429,11 @@ class WebosPlusDevice extends WebOSTV {
   async volumeSet(value) {
     this.log(`volumeSet: Called`, value);
     this.log(`volumeSet: Try to set the volume to ${value}`);
-    // const newVolume = await this._volumeSet(value).catch(this.error);
-    // if (newVolume) {
-    //   this.log(`volumeSet: Volume set. Set capability ${capabilities.volumeSet} to ${value}`);
-    //   this.setCapabilityValue(capabilities.volumeSet, value);
-    // }
+    const newVolume = await this._volumeSet(value).catch(this.error);
+    if (newVolume) {
+      this.log(`volumeSet: Volume set. Set capability ${capabilities.volumeSet} to ${value}`);
+      this.setCapabilityValue(capabilities.volumeSet, value);
+    }
   }
 
   /**
