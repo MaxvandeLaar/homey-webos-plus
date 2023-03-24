@@ -156,6 +156,8 @@ class WebosPlusDriver extends Homey.Driver {
     this.actionChangeSoundOutput()
     this._actionSwitchInput = this.homey.flow.getActionCard('switch_input')
     this.actionSwitchInput()
+    this._actionSendAlert = this.homey.flow.getActionCard('send_alert')
+    this.actionSendAlert()
   }
 
   conditionSoundOutput() {
@@ -437,6 +439,14 @@ class WebosPlusDriver extends Homey.Driver {
       })
   }
 
+  actionSendAlert() {
+    this._actionSendAlert
+      .registerRunListener(async (args, state) => {
+        const device = args.webosDevice
+          return await device._alertSend(args)
+      })
+  }
+
   async _mapDiscoveryResults(result) {
     return new Promise(async (resolve, _reject) => {
       const info = await WebosPlusDriver._getInfo(result.headers.location).catch(this.error)
@@ -463,7 +473,7 @@ class WebosPlusDriver extends Homey.Driver {
       return Promise.all(Object.values(discoveryResults).map(result => this._mapDiscoveryResults(result)))
     }
 
-    return await devices()
+    return await devices().catch()
   }
 
   static _getInfo(url) {

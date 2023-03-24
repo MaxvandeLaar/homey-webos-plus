@@ -44,9 +44,11 @@
     "developers": [
       {
         "name": "Max van de Laar"
-      }, {
+      },
+      {
         "name": "Dominic Vonk"
-      }, {
+      },
+      {
         "name": "Paul Molensky"
       }
     ],
@@ -682,6 +684,63 @@
     ],
     "actions": [
       {
+        "id": "send_alert",
+        "title": {
+          "en": "Send an alert message with an okay button and optional timeout",
+          "nl": "Stuur een alert bericht met OK knop en optionele timeout"
+        },
+        "titleFormatted": {
+          "en": "Send an alert with the title [[title]], message [[message]] that closes after [[timeout]] seconds with [[buttons]]",
+          "nl": "Verstuur een alert met de titel [[title]], tekst [[message]] en na [[timeout]] seconden sluit met [[buttons]]"
+        },
+        "args": [
+          {
+            "name": "title",
+            "type": "text",
+            "placeholder": {
+              "en": "Alert title",
+              "nl": "Melding titel"
+            },
+            "required": false
+          },
+          {
+            "name": "message",
+            "type": "text",
+            "placeholder": {
+              "en": "Alert text",
+              "nl": "Melding tekst"
+            }
+          },
+          {
+            "name": "buttons",
+            "title": {
+              "en": "JSON array: [{\"label\": \"OK\", \"focus\": true, \"params\": {\"id\": \"com.webos.app.browser\", \"target\": \"https://maxvandelaar.com\"}}]",
+              "nl": "JSON array: [{\"label\": \"OK\", \"focus\": true, \"params\": {\"id\": \"com.webos.app.browser\", \"target\": \"https://maxvandelaar.com\"}}]"
+            },
+            "type": "text",
+            "required": false,
+            "placeholder": {
+              "en": "Button JSON ARRAY",
+              "nl": "Button JSON ARRAY"
+            }
+          },
+          {
+            "name": "timeout",
+            "type": "number",
+            "required": false,
+            "placeholder": {
+              "en": "Timeout in seconds",
+              "nl": "Timeout in seconden"
+            }
+          },
+          {
+            "name": "webosDevice",
+            "type": "device",
+            "filter": "driver_id=webos_plus"
+          }
+        ]
+      },
+      {
         "id": "send_toast",
         "title": {
           "en": "Send a toast message",
@@ -1300,7 +1359,8 @@
                 "nl": "Zet het IP adres handmatig"
               },
               "value": false
-            }, {
+            },
+            {
               "id": "ipAddress",
               "type": "text",
               "label": {

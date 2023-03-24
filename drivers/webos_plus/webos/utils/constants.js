@@ -26,12 +26,12 @@ const endpoints = {
       browser: 'sapp://system.launcher/open', // todo: implement launch browser
       launch: 'ssap://system.launcher/launch', // todo: implement launch apps
       state: 'ssap://system.launcher/getAppState', // todo: implement get App state
-      close: 'ssap://system.launcher/close' // todo: implement close app
+      close: 'ssap://system.launcher/close', // todo: implement close app
     },
     inputs: {
       list: 'ssap://tv/getExternalInputList',
-      switch: 'ssap://tv/switchInput'
-    }
+      switch: 'ssap://tv/switchInput',
+    },
   },
   volume: {
     get: 'ssap://audio/getVolume',
@@ -39,7 +39,7 @@ const endpoints = {
     mute: 'ssap://audio/setMute',
     getMute: 'ssap://audio/getMute', // todo: implement
     up: 'ssap://audio/volumeUp',
-    down: 'ssap://audio/volumeDown'
+    down: 'ssap://audio/volumeDown',
   },
   media: {
     play: 'ssap://media.controls/play',
@@ -47,7 +47,7 @@ const endpoints = {
     stop: 'ssap://media.controls/stop', //todo: implement?
     fastForward: 'ssap://media.controls/fastForward',
     rewind: 'ssap://media.controls/rewind',
-    open: 'ssap://media.viewer/open' // todo: investigate what this is and how to implement
+    open: 'ssap://media.viewer/open', // todo: investigate what this is and how to implement
   },
   app: {
     launch: 'ssap://com.webos.applicationManager/launch',
@@ -57,30 +57,36 @@ const endpoints = {
       connect: 'ssap://webapp/connectToApp', // todo: implement?
       removePin: 'ssap://webapp/removePinnedWebApp', // todo: implement?
       isPinned: 'ssap://webapp/isWebAppPinned', // todo: implement?
-      pin: 'ssap://webapp/pinWebApp' // todo: implement?
+      pin: 'ssap://webapp/pinWebApp', // todo: implement?
     },
     getForegroundApp: 'ssap://com.webos.applicationManager/getForegroundAppInfo',
     getAll: 'ssap://com.webos.applicationManager/listLaunchPoints',
-    list: 'ssap://com.webos.applicationManager/listApps'
+    list: 'ssap://com.webos.applicationManager/listApps',
   },
   pairing: {
-    setPin: 'ssap://pairing/setPin' // todo: implement?
+    setPin: 'ssap://pairing/setPin', // todo: implement?
   },
   channel: {
     current: 'ssap://tv/getCurrentChannel',
     up: 'ssap://tv/channelUp',
     down: 'ssap://tv/channelDown',
     set: 'ssap://tv/openChannel',
-    list: 'ssap://tv/getChannelList'
+    list: 'ssap://tv/getChannelList',
   },
   audio: {
     getOutput: 'ssap://com.webos.service.apiadapter/audio/getSoundOutput',
-    setOutput: 'ssap://com.webos.service.apiadapter/audio/changeSoundOutput'
+    setOutput: 'ssap://com.webos.service.apiadapter/audio/changeSoundOutput',
+  },
+  alert: {
+    create: 'ssap://system.notifications/createAlert',
+    close: 'ssap://system.notifications/closeAlert',
+    closeAll: 'ssap://system.notifications/closeAllAlerts',
+    enable: 'ssap://system.notifications/enable',
   },
   toast: {
-    create: 'ssap://system.notifications/createToast'
-  }
-};
+    create: 'ssap://system.notifications/createToast',
+  },
+}
 
 const capabilities = {
   onOff: 'onoff',
@@ -95,29 +101,29 @@ const capabilities = {
   speakerTrack: 'speaker_track',
   speakerPlaying: 'speaker_playing',
   speakerNext: 'speaker_next',
-  speakerPrev: 'speaker_prev'
-};
+  speakerPrev: 'speaker_prev',
+}
 
 const store = {
   currentApp: 'currentApp',
   currentSoundOutput: 'currentSoundOutput',
-  currentChannel: 'currentChannel'
-};
+  currentChannel: 'currentChannel',
+}
 
 const actions = {
   volume: {
     up: 'volumeUp',
-    down: 'volumeDown'
+    down: 'volumeDown',
   },
   channel: {
     up: 'channelUp',
-    down: 'channelDown'
-  }
-};
+    down: 'channelDown',
+  },
+}
 
 module.exports = {
   endpoints,
   capabilities,
   store,
-  actions
-};
+  actions,
+}
