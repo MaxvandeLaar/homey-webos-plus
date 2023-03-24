@@ -1,4 +1,7 @@
 {
+  "3.0.2": {
+    "en": "Fixed connection issues with secure websocket and device unavailability."
+  },
   "3.0.1": {
     "en": "Use secure websocket connection with help of Paul Molensky."
   },
