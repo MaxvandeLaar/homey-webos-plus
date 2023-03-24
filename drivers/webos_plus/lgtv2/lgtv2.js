@@ -282,7 +282,7 @@ var LGTV = function (config) {
           that.emit('error', error);
         });
 
-      special.connect(data.socketPath);
+      special.connect(data.socketPath, null, null, null, {rejectUnauthorized: false});
     });
   };
 

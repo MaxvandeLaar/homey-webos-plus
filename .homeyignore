@@ -1,0 +1,6 @@
+lg-webos
+.github
+config
+.gitignore
+release.sh
+tsconfig.json

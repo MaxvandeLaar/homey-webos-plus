@@ -53,9 +53,10 @@ class WebOSTV extends Homey.Device {
     });
 
     this.lgtv.on('error', (err) => {
-      this.error(err);
       if (err.code === 'EHOSTUNREACH') {
-
+        this.setAvailable()
+      } else {
+        this.error(err);
       }
     });
 
