@@ -26,6 +26,26 @@ Besides the basic capabilities you can create amazing flows:
   - Simulate remote control button (e.g. Left, Exit, Menu, Ok)
   - Toast with optional icon
   - Media controls
+  - Alert message, see button example below
+  ```
+    buttons: [
+       {
+         label: 'Netflix',
+         onclick: 'luna://com.webos.applicationManager/launch',
+         params: {id: 'netflix'},
+         buttonType: 'confirm',
+         focus: true,
+       }, {
+         label: 'Google',
+         onclick: 'luna://com.webos.applicationManager/launch',
+         params: {id: 'com.webos.app.browser', target: 'https://google.nl'},
+         buttonType: 'confirm'
+       }, {
+         label: 'Cancel',
+         buttonType: 'cancel'
+       },
+     ],
+  ```
 
 * Conditions:
   - On/Off

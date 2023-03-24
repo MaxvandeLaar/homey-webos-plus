@@ -327,7 +327,7 @@ class WebosPlusDevice extends WebOSTV {
       this.log(`appListener: Set image for '${newAppId}' ${app.name} (${app.imageLarge || app.image})`);
       this.image.setStream(async (stream) => {
 
-        const appImage = await fetch(app.imageLarge || app.image, {method: 'get', agent: unsecureHttpsAgent}).catch(console.error);
+        const appImage = await fetch(app.imageLarge || app.image, {method: 'get', agent: unsecureHttpsAgent}).catch(this.error);
 
         if (!appImage.ok) {
           this.error('appListener: Get image failed');

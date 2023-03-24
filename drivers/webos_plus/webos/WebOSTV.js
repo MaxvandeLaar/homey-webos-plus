@@ -956,18 +956,15 @@ class WebOSTV extends Homey.Device {
     }
 
     if (Boolean(args.buttons)) {
-      try {
         data.buttons = JSON.parse(args.buttons)
-      } catch (e) {
-      }
     }
 
     data.buttons.push({
       label: 'Close',
       buttonType: 'cancel',
     })
-    this.log(`_alertSend: Send request to create an alert message`)
 
+    this.log(`_alertSend: Send request to create an alert message`)
     const result = await this.request(endpoints.alert.create, data)
     const alertId = result.alertId
     if (!alertId) {

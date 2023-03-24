@@ -27,6 +27,26 @@ Naast de basis capabilities kan je mooie flows maken:
   - Simuleer afstandbediening knoppen (e.g. Links, Exit, Menu, Ok)
   - Toast message incl. optionele icon
   - Media knoppen
+  - Alert message, zie button voorbeeld hieronder
+  ```
+    buttons: [
+       {
+         label: 'Netflix',
+         onclick: 'luna://com.webos.applicationManager/launch',
+         params: {id: 'netflix'},
+         buttonType: 'confirm',
+         focus: true,
+       }, {
+         label: 'Google',
+         onclick: 'luna://com.webos.applicationManager/launch',
+         params: {id: 'com.webos.app.browser', target: 'https://google.nl'},
+         buttonType: 'confirm'
+       }, {
+         label: 'Cancel',
+         buttonType: 'cancel'
+       },
+     ],
+  ```
 
 * Conditions:
   - Aan/uit
