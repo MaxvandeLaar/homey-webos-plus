@@ -1,4 +1,7 @@
 {
+  "3.1.0": {
+    "en": "Added an action card to create alerts with buttons. This is a more advanced feature."
+  },
   "3.0.2": {
     "en": "Fixed connection issues with secure websocket and device unavailability."
   },
