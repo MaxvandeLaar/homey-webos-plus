@@ -597,6 +597,7 @@ class WebOSTV extends Homey.Device {
     this.simulateButtonSockTimeout = setTimeout(() => {
       this.simulateButtonSock.close()
       this.simulateButtonSock = null
+      this.simulateButtonSockTimeout = null
       this.log('_simulateButton: Closed simulated button sock')
 
     }, 10000)

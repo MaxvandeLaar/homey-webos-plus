@@ -1,4 +1,7 @@
 {
+  "3.1.2": {
+    "en": "Small timeout bugfix"
+  },
   "3.1.1": {
     "en": "Fixed: simulating multiple buttons within shortly after another would not work."
   },
