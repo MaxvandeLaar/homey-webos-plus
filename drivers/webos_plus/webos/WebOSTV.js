@@ -29,6 +29,8 @@ class WebOSTV extends Homey.Device {
   construct() {
     this.lgtv = null
     this.subsSet = false
+    this.simulateButtonSock = null
+    this.simulateButtonSockTimeout = null
   }
 
   /**
@@ -56,7 +58,7 @@ class WebOSTV extends Homey.Device {
       if (err.code === 'EHOSTUNREACH') {
         this.setAvailable()
       } else {
-        this.error(err);
+        this.error(err)
       }
     })
 
@@ -572,22 +574,32 @@ class WebOSTV extends Homey.Device {
    * @param {string} button
    * @returns {Promise<boolean>} Returns true if success
    */
-  _simulateButton(button) {
+  async _simulateButton(button) {
     this.log(`_simulateButton: Send request to simulate button '${ button }'`)
-    return new Promise(async (resolve, reject) => {
-      this.lgtv.getSocket(endpoints.inputSocket, async (err, sock) => {
-        if (err) {
-          this.error('_simulateButton', err)
-          reject(err)
-        }
-        if (!err) {
-          sock.send('button', {name: button.toUpperCase()})
-          sock.close()
-          this.log(`_simulateButton: Successfully simulated button '${ button }'`)
-          resolve(true)
-        }
+    if (this.simulateButtonSockTimeout) {
+      clearTimeout(this.simulateButtonSockTimeout)
+      this.simulateButtonSockTimeout = null
+    }
+    if (!this.simulateButtonSock) {
+      this.simulateButtonSock = await new Promise(async (resolve, reject) => {
+        this.lgtv.getSocket(endpoints.inputSocket, async (err, sock) => {
+          if (err) {
+            this.error('_simulateButton', err)
+            return reject(err)
+          }
+          this.log('_simulateButton: Opened simulated button sock')
+          return resolve(sock)
+        })
       })
-    })
+    }
+    this.simulateButtonSock.send('button', {name: button.toUpperCase()})
+    this.log(`_simulateButton: Successfully simulated button '${ button }'`)
+    this.simulateButtonSockTimeout = setTimeout(() => {
+      this.simulateButtonSock.close()
+      this.simulateButtonSock = null
+      this.log('_simulateButton: Closed simulated button sock')
+
+    }, 10000)
   }
 
   /**
@@ -956,7 +968,7 @@ class WebOSTV extends Homey.Device {
     }
 
     if (Boolean(args.buttons)) {
-        data.buttons = JSON.parse(args.buttons)
+      data.buttons = JSON.parse(args.buttons)
     }
 
     data.buttons.push({
