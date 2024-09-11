@@ -176,7 +176,7 @@ class WebosPlusDevice extends WebOSTV {
     });
   }
 
-  onSettings(oldSettings, newSettings, changedKeys) {
+  onSettings({oldSettings, newSettings, changedKeys}) {
     if (oldSettings.usePoll !== newSettings.usePoll){
       this.lgtv.disconnect();
       this.construct();
